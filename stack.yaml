@@ -1,0 +1,8 @@
+resolver: lts-15.9
+
+packages:
+- .
+
+ghc-options:
+  "$locals": -Wall
+  "$everything": -O2

@@ -1,0 +1,4 @@
+.stack-work/
+*~
+tsil.cabal
+stack.yaml.lock

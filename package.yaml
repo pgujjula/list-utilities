@@ -28,3 +28,16 @@ library:
     - Data.List.Ordered.Transform
     - Data.List.Predicate
     - Data.List.Transform
+
+executables:
+  spec:
+    source-dirs: test
+    main: Spec.hs
+    other-modules:
+      - Data.List.DigitSpec
+      - Data.List.Ordered.PredicateSpec
+      - Data.List.Ordered.TransformSpec
+      - Data.List.PredicateSpec
+      - Data.List.TransformSpec
+    dependencies:
+      - hspec

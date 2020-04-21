@@ -61,7 +61,7 @@ toDigits :: (Integral a) => a -> [Int]
 toDigits = map (\x -> ord x - ordZero) . show . toInteger
 
 {-|
-    @fromDigits xs@ is converts a list of digits @xs@ to an integer.
+    @fromDigits xs@ converts a list of digits @xs@ to an integer.
 
     __Precondition:__ All elements of @xs@ are in @[0..9]@.
 

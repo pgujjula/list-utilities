@@ -41,3 +41,6 @@ executables:
       - Data.List.TransformSpec
     dependencies:
       - hspec
+      - QuickCheck
+      - tsil
+      - random

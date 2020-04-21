@@ -24,10 +24,10 @@ library:
   source-dirs: src
   exposed-modules:
     - Data.List.Digit
-    - Data.List.Ordered.Predicate
-    - Data.List.Ordered.Transform
-    - Data.List.Predicate
-    - Data.List.Transform
+#    - Data.List.Ordered.Predicate
+#    - Data.List.Ordered.Transform
+#    - Data.List.Predicate
+#    - Data.List.Transform
   dependencies:
     - text
     - text-show
@@ -38,10 +38,10 @@ executables:
     main: Spec.hs
     other-modules:
       - Data.List.DigitSpec
-      - Data.List.Ordered.PredicateSpec
-      - Data.List.Ordered.TransformSpec
-      - Data.List.PredicateSpec
-      - Data.List.TransformSpec
+#      - Data.List.Ordered.PredicateSpec
+#      - Data.List.Ordered.TransformSpec
+#      - Data.List.PredicateSpec
+#      - Data.List.TransformSpec
     dependencies:
       - hspec
       - QuickCheck

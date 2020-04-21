@@ -1,3 +1,11 @@
+{-|
+Module      : Data.List.Digit
+Description : Lists of digits to numbers, and vice versa
+Copyright   : (c) Preetham Gujjula, 2020
+License     : GPL-3
+Maintainer  : preetham.gujjula@gmail.com
+Stability   : experimental
+-}
 module Data.List.Digit
   ( numDigits
   , sumDigits
@@ -10,6 +18,7 @@ import Data.Char (chr, ord)
 ordZero :: Int
 ordZero = ord '0'
 
+-- TODO: Move this to hilbert
 {-|
     @numDigits n@ is the number of digits in @n@.
 
@@ -23,6 +32,7 @@ ordZero = ord '0'
 numDigits :: (Integral a) => a -> Int
 numDigits = length . show . toInteger . abs
 
+-- TODO: Move this to Hilbert
 {-|
     @sumDigits n@ is the sum of the digits in @n@.
 
@@ -65,4 +75,4 @@ toDigits = map (\x -> ord x - ordZero) . show . toInteger
     42
 -}
 fromDigits :: (Integral a) => [Int] -> a
-fromDigits = fromInteger . read . map (\x -> chr (x + ordZero))
+fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0:)

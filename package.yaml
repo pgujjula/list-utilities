@@ -4,13 +4,13 @@ github:              "pgujjula/tsil"
 license:             GPL-3
 author:              "Preetham Gujjula"
 maintainer:          "preethamgujjula@gmail.com"
-copyright:           "2020 Author name here"
+copyright:           "2020 Preetham Gujjul"
 
 extra-source-files:
 - README.md
 
 synopsis:            List utilities
-category:            Data, List
+category:            List
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -23,6 +23,8 @@ dependencies:
 library:
   source-dirs: src
   exposed-modules:
-    - Data.List.Ordered.Set
-  dependencies:
-    - containers
+    - Data.List.Digit
+    - Data.List.Ordered.Predicate
+    - Data.List.Ordered.Transform
+    - Data.List.Predicate
+    - Data.List.Transform

@@ -4,12 +4,12 @@ module Data.List.DigitSpec (spec) where
 import Control.Monad         (forM_)
 
 import System.Random         (Random)
-import Test.Hspec            (Spec, describe, it, shouldBe)
+import Test.Hspec            (Expectation, Spec, describe, it, shouldBe)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
-import Test.QuickCheck       (Gen, choose, forAll, oneof, resize,
+import Test.QuickCheck       (Gen, Property, choose, forAll, oneof, resize,
                               sized, (===))
 
-import Data.List.Digit       (numDigits)
+import Data.List.Digit       (numDigits, sumDigits)
 
 numTests :: Int
 numTests = 1000
@@ -18,8 +18,9 @@ maxNumDigits :: Int
 maxNumDigits = 50
 
 spec :: Spec
-spec = modifyMaxSuccess (const numTests)
-     $ describe "numDigits" numDigitsSpec
+spec = modifyMaxSuccess (const numTests) $ do
+       describe "numDigits" numDigitsSpec
+       describe "sumDigits" sumDigitsSpec
 
 digits :: (Integral a) => [a]
 digits = [-9..9]
@@ -43,14 +44,42 @@ uniformLengthIntegerGen = resize maxNumDigits uniformLengthIntegralGen
 
 numDigitsSpec :: Spec
 numDigitsSpec = do
-  let testDigits ds = forM_ ds $ \x -> numDigits x `shouldBe` 1
-  it "on single-digit Ints equals 1"
-    $ testDigits (digits :: [Int])
-  it "on single-digit Integers equals 1"
-    $ testDigits (digits :: [Integer])
+  let testDigits :: (Integral a) => [a] -> Expectation
+      testDigits ds = forM_ ds $ \x -> numDigits x `shouldBe` 1
+   in do
+      it "on single-digit Ints equals 1"
+        $ testDigits (digits :: [Int])
+      it "on single-digit Integers equals 1"
+        $ testDigits (digits :: [Integer])
 
-  let numDigitsCorrect x = numDigits x === (length $ show $ abs x)
-  it "correct on Ints of random length"
-    $ forAll uniformLengthIntGen numDigitsCorrect
-  it "correct on Integers of random length"
-    $ forAll uniformLengthIntegerGen numDigitsCorrect
+  let naive :: (Integral a, Show a) => a -> Int
+      naive = length . show . abs
+
+      testArbitrary :: (Integral a, Show a) => a -> Property
+      testArbitrary x = numDigits x === naive x
+   in do
+      it "correct on Ints of random length"
+        $ forAll uniformLengthIntGen testArbitrary
+      it "correct on Integers of random length"
+        $ forAll uniformLengthIntegerGen testArbitrary
+
+sumDigitsSpec :: Spec
+sumDigitsSpec = do
+  let testDigits :: (Integral a) => [a] -> Expectation
+      testDigits ds = forM_ ds $ \x -> sumDigits x `shouldBe` (fromIntegral $ abs x)
+   in do
+      it "on single-digit Ints equals 1"
+        $ testDigits (digits :: [Int])
+      it "on single-digit Integers equals 1"
+        $ testDigits (digits :: [Integer])
+
+  let naive :: (Integral a, Show a) => a -> Int
+      naive = sum . map (read . (:[])) . show
+
+      testArbitrary :: (Integral a, Show a) => a -> Property
+      testArbitrary x = sumDigits x === naive x
+   in do
+      it "correct on Ints of random length"
+        $ forAll uniformLengthIntGen testArbitrary
+      it "correct on Integers of random length"
+        $ forAll uniformLengthIntegerGen testArbitrary

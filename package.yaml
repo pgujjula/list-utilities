@@ -28,9 +28,6 @@ library:
 #    - Data.List.Ordered.Transform
 #    - Data.List.Predicate
     - Data.List.Transform
-  dependencies:
-    - text
-    - text-show
 
 executables:
   spec:
@@ -45,5 +42,5 @@ executables:
     dependencies:
       - hspec
       - QuickCheck
-      - tsil
       - random
+      - tsil

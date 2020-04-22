@@ -1,12 +1,11 @@
-{-|
-Module      : Data.List.Digit
-Description : Transform lists to other lists.
-Copyright   : (c) Preetham Gujjula, 2020
-License     : GPL-3
-Maintainer  : preetham.gujjula@gmail.com
-Stability   : experimental
+{-| Module      : Data.List.Digit
+    Description : Transform lists to other lists.
+    Copyright   : (c) Preetham Gujjula, 2020
+    License     : GPL-3
+    Maintainer  : preetham.gujjula@gmail.com
+    Stability   : experimental
 
-Transform lists to other lists.
+    Transform lists to other lists.
 -}
 module Data.List.Transform
   ( takeEvery
@@ -53,15 +52,15 @@ groupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
 groupBy cmp = groupAdjacentBy eq . sortBy cmp
   where eq a b = cmp a b == EQ
 
-{- @groupAdjacent xs@ groups adjacent elements of xs that are equal. It works
-   with infinite lists as well.
+{-| @groupAdjacent xs@ groups adjacent elements of xs that are equal. It works
+    with infinite lists as well.
 
-   >>> groupAdj [1, 3, 3, 3, 2, 2]
-   [[1], [3, 3, 3], [2, 2]]
-   >>> take 4 $ groupAdj $ concatMap (\x -> take x $ repeat x) [1..]
-   [[1], [2, 2], [3, 3, 3], [4, 4, 4, 4]]
-   >>> groupAdj []
-   []
+    >>> groupAdj [1, 3, 3, 3, 2, 2]
+    [[1], [3, 3, 3], [2, 2]]
+    >>> take 4 $ groupAdj $ concatMap (\x -> take x $ repeat x) [1..]
+    [[1], [2, 2], [3, 3, 3], [4, 4, 4, 4]]
+    >>> groupAdj []
+    []
 -}
 groupAdjacent :: (Eq a) => [a] -> [[a]]
 groupAdjacent = groupAdjacentBy (==)

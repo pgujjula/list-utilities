@@ -1,4 +1,4 @@
-{-| Module      : Data.List.Digit
+{-| Module      : Data.List.Transform
     Description : Transform lists to other lists.
     Copyright   : (c) Preetham Gujjula, 2020
     License     : GPL-3

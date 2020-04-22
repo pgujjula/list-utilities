@@ -17,8 +17,8 @@ module Data.List.Transform
   ) where
 
 import Control.Monad (guard)
-import Data.List (uncons, sortBy, sort)
-import Data.Maybe (fromMaybe)
+import Data.List     (sort, sortBy, uncons)
+import Data.Maybe    (fromMaybe)
 
 -- TODO: Consider moving to Data.List.Filter
 {-| @takeEvery n xs@ is a list of every nth element of xs
@@ -51,7 +51,7 @@ group = groupAdjacent . sort
 {-| Like @group@, but with a custom comparison test. -}
 groupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
 groupBy cmp = groupAdjacentBy eq . sortBy cmp
-  where eq a b = (cmp a b) == EQ
+  where eq a b = cmp a b == EQ
 
 {- @groupAdjacent xs@ groups adjacent elements of xs that are equal. It works
    with infinite lists as well.

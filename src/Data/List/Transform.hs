@@ -13,6 +13,7 @@ module Data.List.Transform
   , groupBy
   , groupAdjacent
   , groupAdjacentBy
+  , rotate
   ) where
 
 import Control.Monad (guard)
@@ -75,3 +76,36 @@ groupAdjacentBy eq = foldr f []
           (ys, yss') <- uncons yss
           guard (x `eq` head ys)
           return (ys, yss')
+
+-- TODO: Simplify this implementation
+{-| Rotate a list by an offset. Positive offset is left rotation, negative is
+    right. Zero- and left-rotation work with infinite lists. Also works if the
+    offset is greater than the length of the list.
+
+    >>> rotate 2 [1..6]
+    [5, 6, 1, 2, 3, 4]
+    >>> rotate (-2) [1..6]
+    [3, 4, 5, 6, 1, 2]
+    >>> rotate 0 [1..6]
+    [1, 2, 3, 4, 5, 6]
+    >>> take 6 $ rotate (-2) [1..]
+    [3, 4, 5, 6, 7, 8]
+    >>> rotate 5 [1, 2, 3]
+    [2, 3, 1]
+-}
+rotate :: Int -> [a] -> [a]
+rotate n xs
+  | null xs   = []
+  | n >= 0    = let d = case lengthTo n xs of
+                          Nothing -> n
+                          Just l  -> n `rem` l
+                    (ys, zs) = splitAt d xs
+                 in zs ++ ys
+  | otherwise = let (ys, zs) = splitAt (n `mod` length xs) xs
+                 in zs ++ ys
+
+lengthTo :: Int -> [a] -> Maybe Int
+lengthTo n xs =
+  if (not . null) $ drop n xs
+  then Nothing
+  else Just (length xs)

@@ -2,10 +2,11 @@ module Data.List.TransformSpec (spec) where
 
 import Test.Hspec            (Spec, describe, it, shouldBe)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
+import Test.QuickCheck       (Property)
 
 import Data.Function         (on)
 import Data.List.Transform   (group, groupAdjacent, groupAdjacentBy, groupBy,
-                              rotate, takeEvery)
+                              rotate, takeEvery, mergeMany)
 import Data.Ord              (Down (Down), comparing)
 
 numTests :: Int
@@ -22,6 +23,7 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "groupBy" groupBySpec
        describe "groupAdjacentBy" groupAdjacentBySpec
        describe "rotateSpec" rotateSpec
+       describe "mergeManySpec" mergeManySpec
 
 takeEverySpec :: Spec
 takeEverySpec = do
@@ -123,3 +125,18 @@ rotateSpec = do
     rotate bigOffset xs `shouldBe` rotate (bigOffset `mod` length xs) xs
   it "finite list, huge negative offset" $
     rotate (-bigOffset) xs `shouldBe` rotate ((-bigOffset) `mod` length xs) xs
+
+-- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
+-- (allEqual, sorted)
+mergeManySpec :: Spec
+mergeManySpec = do
+  it "empty list" $ do
+    mergeMany [] `shouldBe` ([] :: [Int])
+  it "list of empty lists" $ do
+    mergeMany (replicate 10 []) `shouldBe` ([] :: [Int])
+  it "infinite list of infinite lists" $ do
+    (take 10 $ mergeMany $ map (\x -> [x..]) [1..])
+      `shouldBe` ([1, 2, 2, 3, 3, 3, 4, 4, 4, 4] :: [Int])
+  it "works with transposing" (undefined :: Property)
+  it "works with finite lists of finite lists" (undefined :: Property)
+  it "works with infinite lists" (undefined :: Property)

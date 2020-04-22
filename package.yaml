@@ -29,6 +29,8 @@ library:
 #    - Data.List.Predicate
 #    - Data.List.Filter
     - Data.List.Transform
+  dependencies:
+    - pqueue
 
 executables:
   spec:

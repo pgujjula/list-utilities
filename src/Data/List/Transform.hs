@@ -9,6 +9,8 @@
 -}
 module Data.List.Transform
   ( takeEvery
+  , takeUntil
+  , dropUntil
   , group
   , groupBy
   , groupAdjacent
@@ -43,6 +45,14 @@ takeEvery n xs =
   case drop (n - 1) xs of
     []     -> []
     (y:ys) -> y : takeEvery n ys
+
+takeUntil :: (a -> Bool) -> [a] -> [a]
+takeUntil _ [] = []
+takeUntil f (x:xs) = if f x then [x] else x:(takeUntil f xs)
+
+dropUntil :: (a -> Bool) -> [a] -> [a]
+dropUntil _ [] = []
+dropUntil f (x:xs) = if f x then (x:xs) else dropUntil f xs
 
 {-| @group xs@ groups elements of xs that are equal. The groups are returned in
     a sorted order, so a group of a smaller element appears before a group of a
@@ -118,8 +128,47 @@ lengthTo n xs =
   then Nothing
   else Just (length xs)
 
-{-|
-    Merge a list of lists. Works with infinite lists of infinite lists.
+{-| Merge two ordered lists. Works lazily on infinite lists.
+    
+    >>> merge [2, 4, 6, 8] [1, 3, 5, 7]
+    [1, 2, 3, 4, 5, 6, 7]
+-}
+merge :: (Ord a) => [a] -> [a] -> [a]
+merge = mergeBy compare
+
+{-| Merge two lists with a custom comparison function. The two lists are
+    assumed to be ordered by the same function.
+    
+    >>> mergeBy (comparing Down) [8, 6, 4, 2] [7, 5, 3, 1]
+    [8, 7, 6, 5, 4, 3, 2, 1]
+-}
+mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy _ [] ys = ys
+mergeBy _ xs [] = xs
+mergeBy cmp (x:xs) (y:ys)
+  | cmp y x == GT = y:(mergeBy cmp (x:xs) ys)
+  | otherwise     = x:(mergeBy cmp xs (y:ys))
+
+-- TODO: Fill these out
+--diff :: (Ord a) => [a] -> [a] -> [a]
+--diff = undefined
+
+--diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+--diffBy cmp = undefined
+
+--intersect
+--intersectBy
+
+-- TODO: Implement. Potentially use (Eq a) instead. Potentially move
+-- to ordered module to reenforce fact that it needs to be ordered.
+--deleteDuplicates :: (Ord a) => [a] -> [a]
+--deleteDuplicates = undefined
+--
+--deleteDuplicatesBy :: (a -> a -> Ordering) -> [a] -> [a]
+--deleteDuplicatesBy = undefined
+
+-- TODO: Reconsider this implementation
+{-| Merge a list of lists. Works with infinite lists of infinite lists.
 
     __Preconditions:__ Each list must be sorted, and the list of lists must be sorted by first element.
 
@@ -162,8 +211,8 @@ mergeMany xss =
 data Node a = Plane [[a]] | Line [a]
   deriving (Show, Ord, Eq)
 
-{-|
-    Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
+-- TODO: Improve this explanation.
+{-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
     yields in sorted order, [z | z = x*y, x <- xs, y <- ys]. Works even if xs, ys are
     infinite.
 
@@ -172,15 +221,9 @@ data Node a = Plane [[a]] | Line [a]
      * x1 >= x2 => op x1 y >= op x2 y
      * y1 >= y2 => op x y1 >= op x y2
 -}
-applyMerge :: (Ord a, Ord b, Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
+applyMerge :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
 applyMerge op xs ys = mergeMany $ map (\x -> map (op x) ys) xs
 
-merge :: (Ord a) => [a] -> [a] -> [a]
-merge = mergeBy compare
-
-mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-mergeBy _ [] ys = ys
-mergeBy _ xs [] = xs
-mergeBy cmp (x:xs) (y:ys)
-  | cmp y x == GT = y:(mergeBy cmp (x:xs) ys)
-  | otherwise     = x:(mergeBy cmp xs (y:ys))
+-- TODO: Fill this out
+--applyMergeBy :: (c -> c -> Ordering) -> (a -> b -> c) -> [a] -> [b] -> [c]
+--applyMergeBy = undefined

@@ -25,8 +25,8 @@ library:
   exposed-modules:
     - Data.List.Digit
 #    - Data.List.Ordered.Predicate
-#    - Data.List.Ordered.Transform
-#    - Data.List.Predicate
+    - Data.List.Ordered.Transform
+    - Data.List.Predicate
 #    - Data.List.Filter
     - Data.List.Transform
   dependencies:

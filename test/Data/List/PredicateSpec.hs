@@ -3,11 +3,15 @@ module Data.List.PredicateSpec where
 import Data.Function (on)
 import Data.Ord (Down(Down), comparing)
 
-import Test.Hspec            (Spec, describe, it, shouldBe, hspec)
+import Test.Hspec            (Spec, describe, it, shouldBe, hspec, Expectation)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
+import Test.QuickCheck (Gen, arbitrary, oneof, listOf, suchThat, forAll)
 
-import Data.List.Predicate   (allEqual, allEqualBy, sorted, sortedBy, allAdjUnique, allAdjUniqueBy, allUniqueBy, allUnique)
+import Data.List.Predicate   (allEqual, allEqualBy, sorted, sortedBy, allAdjUnique,
+                              allAdjUniqueBy, allUniqueBy, allUnique, palindrome)
 
+unexp :: Expectation
+unexp = undefined
 -- TODO: Remove if not needed
 numTests :: Int
 numTests = 1000
@@ -22,6 +26,7 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "allUniqueBy" allAdjUniqueBySpec
        describe "allAdjUnique" allAdjUniqueSpec
        describe "allAdjUniqueBy" allAdjUniqueBySpec
+       describe "palindrome" palindromeSpec
 
 allEqualSpec :: Spec
 allEqualSpec = do
@@ -143,3 +148,29 @@ allAdjUniqueBySpec = do
     allAdjUniqueBy ((==) `on` (`rem` 10)) ([1, 5, 19, 8, 2, 5] :: [Int]) `shouldBe` True
   it "finite list, one repeat" $ 
     allAdjUniqueBy ((==) `on` (`rem` 10)) ([1, 5, 18, 8, 2, 5] :: [Int]) `shouldBe` False
+
+palindromeSpec :: Spec
+palindromeSpec = do
+  it "empty list" $ 
+    palindrome "" `shouldBe` True
+  it "singleton list" $ 
+    palindrome "a" `shouldBe` True
+  it "small palindrome, odd length" $ 
+    palindrome "rotor" `shouldBe` True
+  it "small not palindrome, odd length" $
+    palindrome "rover" `shouldBe` False
+  it "small palindrome, even length" $ 
+    palindrome "dood" `shouldBe` True
+  it "small not palindrome, even length" $
+    palindrome "door" `shouldBe` False
+
+  let naive xs = and $ zipWith (==) xs (reverse xs)
+  let palindromeGen = do
+        xs <- listOf arbitrary :: Gen String
+        c  <- oneof [return "", (:[]) <$> arbitrary] :: Gen String -- either a character or nothing
+        return $ xs ++ c ++ (reverse xs)
+  let nonPalindromeGen = listOf arbitrary `suchThat` (not . naive) :: Gen String
+  it "arbitrary palindromes" $ do
+    forAll palindromeGen palindrome
+  it "arbitrary non-palindromes" $ do
+    forAll nonPalindromeGen (not . palindrome)

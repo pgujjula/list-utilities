@@ -114,4 +114,15 @@ descendingContiguous :: (Enum a) => [a] -> Bool
 descendingContiguous = undefined
 
 palindrome :: (Eq a) => [a] -> Bool
-palindrome = undefined
+palindrome xs = 
+  let (rev, len) = reverseLength xs
+   in and $ take (len `div` 2) $ zipWith (==) xs rev
+
+reverseLength :: [a] -> ([a], Int)
+reverseLength = reverseLengthWith [] 0
+  
+reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
+reverseLengthWith ys n [] = (ys, n)
+reverseLengthWith ys n (x:xs) =
+  let n' = n + 1
+  in seq n' (reverseLengthWith (x:ys) n' xs)

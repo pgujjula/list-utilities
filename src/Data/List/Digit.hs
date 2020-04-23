@@ -16,9 +16,6 @@ module Data.List.Digit
 
 import Data.Char (chr, ord)
 
-ordZero :: Int
-ordZero = ord '0'
-
 -- TODO: Move this to hilbert
 {-|
     @numDigits n@ is the number of digits in @n@.
@@ -46,6 +43,9 @@ numDigits = length . show . toInteger . abs
 -}
 sumDigits :: (Integral a) => a -> Int
 sumDigits = sum . toDigits . abs
+
+ordZero :: Int
+ordZero = ord '0'
 
 {-|
     @toDigits n@ is a list of the digits in @n@.

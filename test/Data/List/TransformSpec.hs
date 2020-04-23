@@ -9,6 +9,7 @@ import Data.List.Transform   (group, groupBy,
                               rotate, takeEvery, takeUntil, dropUntil)
 import Data.Ord              (Down (Down), comparing)
 
+-- TODO: Remove if unnecessary
 numTests :: Int
 numTests = 1000
 

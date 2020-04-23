@@ -39,6 +39,7 @@ executables:
     other-modules:
       - Data.List.DigitSpec
       - Data.List.TransformSpec
+      - Data.List.PredicateSpec
     dependencies:
       - hspec
       - QuickCheck

@@ -11,14 +11,17 @@ module Data.List.Transform
   ( takeEvery
   , takeUntil
   , dropUntil
+
   , group
   , groupBy
   , groupAdj
   , groupAdjBy
+
   , deleteDups
   , deleteDupsBy
   , deleteAdjDups
   , deleteAdjDupsBy
+
   , rotate
   ) where
 

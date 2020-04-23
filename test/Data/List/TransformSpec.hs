@@ -2,28 +2,30 @@ module Data.List.TransformSpec (spec) where
 
 import Test.Hspec            (Spec, describe, it, shouldBe)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
-import Test.QuickCheck       (Property)
+--import Test.QuickCheck       (Property)
 
-import Data.Function         (on)
-import Data.List.Transform   (group, groupAdjacent, groupAdjacentBy, groupBy,
-                              rotate, takeEvery, mergeMany)
+--import Data.Function         (on)
+import Data.List.Transform   (group, groupBy,
+                              rotate, takeEvery, takeUntil, dropUntil)
 import Data.Ord              (Down (Down), comparing)
 
 numTests :: Int
 numTests = 1000
 
-maxListLength :: Int
-maxListLength = 1000
+--maxListLength :: Int
+--maxListLength = 1000
 
 spec :: Spec
 spec = modifyMaxSuccess (const numTests) $ do
        describe "takeEvery" takeEverySpec
-       describe "groupAdjacent" groupAdjacentSpec
+       describe "takeUntil" takeUntilSpec
+       describe "dropUntil" dropUntilSpec
+ --      describe "groupAdjacent" groupAdjacentSpec
        describe "group" groupSpec
        describe "groupBy" groupBySpec
-       describe "groupAdjacentBy" groupAdjacentBySpec
+--       describe "groupAdjacentBy" groupAdjacentBySpec
        describe "rotateSpec" rotateSpec
-       describe "mergeManySpec" mergeManySpec
+--       describe "mergeManySpec" mergeManySpec
 
 takeEverySpec :: Spec
 takeEverySpec = do
@@ -44,18 +46,48 @@ takeEverySpec = do
     let xs = [1..] :: [Int]
     take 10 (takeEvery 3 xs) `shouldBe` take 10 (map (*3) xs)
 
-groupAdjacentSpec :: Spec
-groupAdjacentSpec = do
-  it "empty list" $
-    groupAdjacent ([] :: [Int]) `shouldBe` []
-  it "finite list" $
-    groupAdjacent ([1, 3, 3, 3, 2, 2] :: [Int]) `shouldBe` [[1], [3, 3, 3], [2, 2]]
-  it "infinite list" $ do
-    -- output == [[1], [2, 2], [3, 3, 3]..]
-    let output = map (\x -> replicate x x) [1..] :: [[Int]]
-    let input = concat output
-    let n = floor $ sqrt (fromIntegral maxListLength :: Double)
-    take n (groupAdjacent input) `shouldBe` take n output
+takeUntilSpec :: Spec
+takeUntilSpec = do
+  it "empty list, undefined function" $ 
+    takeUntil undefined [] `shouldBe` ([] :: [Int])
+  it "singleton list, undefined function" $ 
+    takeUntil undefined [3] `shouldBe` ([3] :: [Int])
+  it "finite list, undefined function" $ 
+    head (takeUntil undefined [1, 2, 3]) `shouldBe` (1 :: Int)
+  it "finite list" $ 
+    takeUntil (>= 5) [1..10] `shouldBe` ([1..5] :: [Int])
+  it "finite list, always True" $ 
+    takeUntil (const True) [1..10] `shouldBe` ([1] :: [Int])
+  it "finite list, always False" $ 
+    takeUntil (const False) [1..10] `shouldBe` ([1..10] :: [Int])
+  it "infinite list" $ 
+    takeUntil (>= 5) [1..] `shouldBe` ([1..5] :: [Int])
+
+dropUntilSpec :: Spec
+dropUntilSpec = do
+  it "empty list, undefined function" $ 
+    dropUntil undefined [] `shouldBe` ([] :: [Int])
+  it "finite list" $ 
+    dropUntil (== 5) [1..10] `shouldBe` ([5..10] :: [Int])
+  it "finite list, always True" $ 
+    dropUntil (const True) [1..10] `shouldBe` ([1..10] :: [Int])
+  it "finite list, always False" $ 
+    dropUntil (const False) [1..10] `shouldBe` ([] :: [Int])
+  it "infinite list" $ 
+    take 6 (dropUntil (== 5) [1..]) `shouldBe` ([5..10] :: [Int])
+
+--groupAdjacentSpec :: Spec
+--groupAdjacentSpec = do
+--  it "empty list" $
+--    groupAdjacent ([] :: [Int]) `shouldBe` []
+--  it "finite list" $
+--    groupAdjacent ([1, 3, 3, 3, 2, 2] :: [Int]) `shouldBe` [[1], [3, 3, 3], [2, 2]]
+--  it "infinite list" $ do
+--    -- output == [[1], [2, 2], [3, 3, 3]..]
+--    let output = map (\x -> replicate x x) [1..] :: [[Int]]
+--    let input = concat output
+--    let n = floor $ sqrt (fromIntegral maxListLength :: Double)
+--    take n (groupAdjacent input) `shouldBe` take n output
 
 -- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
 -- (allEqual, sorted)
@@ -75,16 +107,16 @@ groupBySpec =
       it "finite list" $
         groupBy cmp ([1, 3, 2, 3, 2, 3] :: [Int]) `shouldBe` [[3, 3, 3], [2, 2], [1]]
 
-groupAdjacentBySpec :: Spec
-groupAdjacentBySpec =
-  let eq = (==) `on` head
-   in do
-      it "empty list" $
-        groupAdjacentBy eq ([] :: [String]) `shouldBe` []
-      it "finite list" $ do
-        let input = ["apple", "at", "atom", "banana", "bot", "cat", "curry", "clip"]
-        let output = [["apple", "at", "atom"], ["banana", "bot"], ["cat", "curry", "clip"]]
-        groupAdjacentBy eq input `shouldBe` output
+--groupAdjacentBySpec :: Spec
+--groupAdjacentBySpec =
+--  let eq = (==) `on` head
+--   in do
+--      it "empty list" $
+--        groupAdjacentBy eq ([] :: [String]) `shouldBe` []
+--      it "finite list" $ do
+--        let input = ["apple", "at", "atom", "banana", "bot", "cat", "curry", "clip"]
+--        let output = [["apple", "at", "atom"], ["banana", "bot"], ["cat", "curry", "clip"]]
+--        groupAdjacentBy eq input `shouldBe` output
 
 -- TODO: Can we turn off annotation warnings for this file?
 rotateSpec :: Spec
@@ -128,15 +160,15 @@ rotateSpec = do
 
 -- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
 -- (allEqual, sorted)
-mergeManySpec :: Spec
-mergeManySpec = do
-  it "empty list" $ do
-    mergeMany [] `shouldBe` ([] :: [Int])
-  it "list of empty lists" $ do
-    mergeMany (replicate 10 []) `shouldBe` ([] :: [Int])
-  it "infinite list of infinite lists" $ do
-    (take 10 $ mergeMany $ map (\x -> [x..]) [1..])
-      `shouldBe` ([1, 2, 2, 3, 3, 3, 4, 4, 4, 4] :: [Int])
-  it "works with transposing" (undefined :: Property)
-  it "works with finite lists of finite lists" (undefined :: Property)
-  it "works with infinite lists" (undefined :: Property)
+--mergeManySpec :: Spec
+--mergeManySpec = do
+--  it "empty list" $ do
+--    mergeMany [] `shouldBe` ([] :: [Int])
+--  it "list of empty lists" $ do
+--    mergeMany (replicate 10 []) `shouldBe` ([] :: [Int])
+--  it "infinite list of infinite lists" $ do
+--    (take 10 $ mergeMany $ map (\x -> [x..]) [1..])
+--      `shouldBe` ([1, 2, 2, 3, 3, 3, 4, 4, 4, 4] :: [Int])
+--  it "works with transposing" (undefined :: Property)
+--  it "works with finite lists of finite lists" (undefined :: Property)
+--  it "works with infinite lists" (undefined :: Property)

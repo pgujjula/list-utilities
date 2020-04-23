@@ -26,7 +26,7 @@ import Control.Monad (guard)
 import Data.List     (sort, sortBy, uncons)
 import Data.Maybe    (fromMaybe)
 
--- TODO: Consider moving to Data.List.Filter
+-- TODO: Consider moving 3 functions below to Data.List.Filter
 {-| @takeEvery n xs@ is a list of every nth element of xs
 
     __Precondition:__ @n@ must be positive.
@@ -42,10 +42,31 @@ takeEvery n xs =
     []     -> []
     (y:ys) -> y : takeEvery n ys
 
+{-| Take a list until a predicate is satisfied, and include the element
+    satisfying the predicate. @takeUntil@ is as lazy as possible, which means it
+    has interesting semantics:
+      * takeUntil _|_ [] == [] (this is unsurprising)
+      * takeUntil _|_ (x:[]) == x1:[]
+      * takeUntil _|_ (x1:x2:xs) = x1:_|_
+    
+    >>> takeUntil (== 5) [1..]
+    [1, 2, 3, 4, 5]
+    >>> takeUntil undefined [1]
+    [1]
+    >>> head (takeUntil undefined [1..])
+    1
+-}
 takeUntil :: (a -> Bool) -> [a] -> [a]
 takeUntil _ [] = []
-takeUntil f (x:xs) = if f x then [x] else x:(takeUntil f xs)
+takeUntil _ [x] = [x]
+takeUntil f (x:xs) = x:(if f x then [] else takeUntil f xs)
 
+{-| Drop a list until a predicate is satisfied, and include the element
+    satisfying the predicate.
+    
+    >>> dropUntil (== 5) [1..10]
+    [5, 6, 7, 8, 9, 10]
+-}
 dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil _ [] = []
 dropUntil f (x:xs) = if f x then (x:xs) else dropUntil f xs

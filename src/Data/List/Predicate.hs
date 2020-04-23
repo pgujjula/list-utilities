@@ -96,6 +96,7 @@ sortedBy cmp xs = and $ zipWith (\a b -> cmp a b /= GT) xs (tail xs)
 allUnique :: (Ord a) => [a] -> Bool
 allUnique = allAdjUnique . sort
 
+{-| Like @allUnique@, with a custom comparison test. -}
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
 allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
   where eq a b = cmp a b == EQ
@@ -103,6 +104,7 @@ allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
+{-| Like @allAdjUnique@, with a custom equality test. -}
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 

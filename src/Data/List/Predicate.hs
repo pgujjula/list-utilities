@@ -16,6 +16,7 @@ module Data.List.Predicate
   , allUniqueBy
   , ascendingContiguous
   , descendingContiguous
+  , palindrome
   ) where
 
 allEqual :: (Eq a) => [a] -> Bool
@@ -43,3 +44,6 @@ ascendingContiguous = undefined
 
 descendingContiguous :: (Enum a) => [a] -> Bool
 descendingContiguous = undefined
+
+palindrome :: (Eq a) => [a] -> Bool
+palindrome = undefined

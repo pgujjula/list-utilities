@@ -1,12 +1,11 @@
-{-|
-Module      : Data.List.Digit
-Description : Lists of digits to numbers, and vice versa
-Copyright   : (c) Preetham Gujjula, 2020
-License     : GPL-3
-Maintainer  : preetham.gujjula@gmail.com
-Stability   : experimental
+{-| Module      : Data.List.Digit
+    Description : Lists of digits to numbers, and vice versa
+    Copyright   : (c) Preetham Gujjula, 2020
+    License     : GPL-3
+    Maintainer  : preetham.gujjula@gmail.com
+    Stability   : experimental
 
-Lists of digits to numbers, and vice versa.
+    Lists of digits to numbers, and vice versa.
 -}
 module Data.List.Digit
   ( numDigits

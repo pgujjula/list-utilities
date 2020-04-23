@@ -13,22 +13,18 @@ module Data.List.Transform
   , dropUntil
   , group
   , groupBy
-  , groupAdjacent
-  , groupAdjacentBy
+  , groupAdj
+  , groupAdjBy
+  , deleteDups
+  , deleteDupsBy
+  , deleteAdjDups
+  , deleteAdjDupsBy
   , rotate
-  , merge
-  , mergeBy
-  , mergeMany
-  , applyMerge
   ) where
 
 import Control.Monad (guard)
 import Data.List     (sort, sortBy, uncons)
-import qualified Data.List as List (null)
 import Data.Maybe    (fromMaybe)
-
-import Data.PQueue.Prio.Min (MinPQueue)
-import qualified Data.PQueue.Prio.Min as PQueue
 
 -- TODO: Consider moving to Data.List.Filter
 {-| @takeEvery n xs@ is a list of every nth element of xs
@@ -64,11 +60,11 @@ dropUntil f (x:xs) = if f x then (x:xs) else dropUntil f xs
     []
 -}
 group :: (Ord a) => [a] -> [[a]]
-group = groupAdjacent . sort
+group = groupAdj . sort
 
 {-| Like @group@, but with a custom comparison test. -}
 groupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
-groupBy cmp = groupAdjacentBy eq . sortBy cmp
+groupBy cmp = groupAdjBy eq . sortBy cmp
   where eq a b = cmp a b == EQ
 
 {-| @groupAdjacent xs@ groups adjacent elements of xs that are equal. It works
@@ -81,12 +77,12 @@ groupBy cmp = groupAdjacentBy eq . sortBy cmp
     >>> groupAdj []
     []
 -}
-groupAdjacent :: (Eq a) => [a] -> [[a]]
-groupAdjacent = groupAdjacentBy (==)
+groupAdj :: (Eq a) => [a] -> [[a]]
+groupAdj = groupAdjBy (==)
 
 {-| Like @groupAdjacent@, but with a custom equality test. -}
-groupAdjacentBy :: (a -> a -> Bool) -> [a] -> [[a]]
-groupAdjacentBy eq = foldr f []
+groupAdjBy :: (a -> a -> Bool) -> [a] -> [[a]]
+groupAdjBy eq = foldr f []
   where
     f x yss = (x:zs):zss
       where
@@ -94,6 +90,19 @@ groupAdjacentBy eq = foldr f []
           (ys, yss') <- uncons yss
           guard (x `eq` head ys)
           return (ys, yss')
+
+-- TODO: Implement.
+deleteDups :: (Ord a) => [a] -> [a]
+deleteDups = undefined
+
+deleteDupsBy :: (a -> a -> Ordering) -> [a] -> [a]
+deleteDupsBy = undefined
+
+deleteAdjDups :: (Eq a) => [a] -> [a]
+deleteAdjDups = undefined
+
+deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
+deleteAdjDupsBy = undefined
 
 -- TODO: Simplify this implementation
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is
@@ -127,103 +136,3 @@ lengthTo n xs =
   if (not . null) $ drop n xs
   then Nothing
   else Just (length xs)
-
-{-| Merge two ordered lists. Works lazily on infinite lists.
-    
-    >>> merge [2, 4, 6, 8] [1, 3, 5, 7]
-    [1, 2, 3, 4, 5, 6, 7]
--}
-merge :: (Ord a) => [a] -> [a] -> [a]
-merge = mergeBy compare
-
-{-| Merge two lists with a custom comparison function. The two lists are
-    assumed to be ordered by the same function.
-    
-    >>> mergeBy (comparing Down) [8, 6, 4, 2] [7, 5, 3, 1]
-    [8, 7, 6, 5, 4, 3, 2, 1]
--}
-mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-mergeBy _ [] ys = ys
-mergeBy _ xs [] = xs
-mergeBy cmp (x:xs) (y:ys)
-  | cmp y x == GT = y:(mergeBy cmp (x:xs) ys)
-  | otherwise     = x:(mergeBy cmp xs (y:ys))
-
--- TODO: Fill these out
---diff :: (Ord a) => [a] -> [a] -> [a]
---diff = undefined
-
---diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
---diffBy cmp = undefined
-
---intersect
---intersectBy
-
--- TODO: Implement. Potentially use (Eq a) instead. Potentially move
--- to ordered module to reenforce fact that it needs to be ordered.
---deleteDuplicates :: (Ord a) => [a] -> [a]
---deleteDuplicates = undefined
---
---deleteDuplicatesBy :: (a -> a -> Ordering) -> [a] -> [a]
---deleteDuplicatesBy = undefined
-
--- TODO: Reconsider this implementation
-{-| Merge a list of lists. Works with infinite lists of infinite lists.
-
-    __Preconditions:__ Each list must be sorted, and the list of lists must be sorted by first element.
-
-    >>> take 10 $ mergeMany $ map (\x -> [x..]) [1..]
-    [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
--}
-mergeMany :: (Ord a) => [[a]] -> [a]
-mergeMany xss = 
-  let xss' = filter (not . List.null) xss
-   in if List.null xss'
-      then []
-      else let n = Plane (filter (not . List.null) xss')
-            in generate (PQueue.singleton (root n) n)
-
-   where
-     generate :: (Ord a) => MinPQueue a (Node a) -> [a]
-     generate pq =
-       case PQueue.minViewWithKey pq of
-         Nothing -> []
-         Just ((x, node), pq') -> x:(generate pq'')
-           where pq'' = foldr (uncurry PQueue.insert) pq' (children node)
-
-
-     null :: Node a -> Bool
-     null (Plane xss) = List.null xss
-     null (Line xs)   = List.null xs
-
-     root :: Node a -> a
-     root (Plane xss) = head (head xss)
-     root (Line xs) = head xs
-
-     children :: Node a -> [(a, Node a)]
-     children node =
-        map (\x -> (root x, x))
-      $ filter (not . null)
-      $ case node of
-          (Line (x:xs))        -> [Line xs]
-          (Plane ((x:xs):xss)) -> [Line xs, Plane xss]
-
-data Node a = Plane [[a]] | Line [a]
-  deriving (Show, Ord, Eq)
-
--- TODO: Improve this explanation.
-{-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
-    yields in sorted order, [z | z = x*y, x <- xs, y <- ys]. Works even if xs, ys are
-    infinite.
-
-    __Preconditions:__ Each list must be sorted, and the operation must be
-    non-decreasing in both arguments. That is,
-     * x1 >= x2 => op x1 y >= op x2 y
-     * y1 >= y2 => op x y1 >= op x y2
--}
-applyMerge :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
-applyMerge op xs ys = mergeMany $ map (\x -> map (op x) ys) xs
-
--- TODO: Fill this out
---applyMergeBy :: (c -> c -> Ordering) -> (a -> b -> c) -> [a] -> [b] -> [c]
---applyMergeBy = undefined

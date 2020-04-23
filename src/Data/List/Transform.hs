@@ -49,7 +49,7 @@ takeEvery n xs =
     satisfying the predicate. @takeUntil@ is as lazy as possible, which means it
     has interesting semantics:
       * takeUntil _|_ [] == [] (this is unsurprising)
-      * takeUntil _|_ (x:[]) == x1:[]
+      * takeUntil _|_ (x:[]) == x:[]
       * takeUntil _|_ (x1:x2:xs) = x1:_|_
     
     >>> takeUntil (== 5) [1..]

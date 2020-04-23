@@ -113,6 +113,17 @@ ascendingContiguous = undefined
 descendingContiguous :: (Enum a) => [a] -> Bool
 descendingContiguous = undefined
 
+{-| Whether the input is a palindrome, i.e., the same forwards and backwards.
+
+    >>> palindrome "rotor"
+    True
+    >>> palindrome "rover"
+    False
+    >>> palindrome "a"
+    True
+    >>> palindrome ""
+    True
+-}
 palindrome :: (Eq a) => [a] -> Bool
 palindrome xs = 
   let (rev, len) = reverseLength xs

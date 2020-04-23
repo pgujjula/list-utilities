@@ -1,12 +1,14 @@
 {-# LANGUAGE TupleSections #-}
 module Data.List.Ordered.TransformSpec (spec) where
 
-import Test.Hspec            (Spec, describe, it, shouldBe, Expectation, hspec)
+import Test.Hspec            (Spec, describe, it, shouldBe, Expectation, hspec, shouldStartWith)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
-import Test.QuickCheck (listOf, arbitrary, forAll, forAllShow, Gen, (===), Property, generate, infiniteList, quickCheck, Testable, choose, infiniteListOf)
+import Test.QuickCheck (listOf, arbitrary, forAll, forAllShow, Gen, (===), Property,
+                        generate, infiniteList, quickCheck, Testable, choose, infiniteListOf, getSize)
 import qualified Test.QuickCheck as QC
 
-import Data.List.Ordered.Transform (merge, mergeBy)
+import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy)
+import Data.List ((\\))
 import Data.Ord (comparing, Down(Down))
 
 import Data.List (sort, sortBy)
@@ -22,6 +24,8 @@ spec :: Spec
 spec = modifyMaxSuccess (const numTests) $ do
        describe "merge" mergeSpec
        describe "mergeBy" mergeBySpec
+       describe "diff" diffSpec
+       describe "diffBy" diffBySpec
 
 unexp :: Expectation
 unexp = undefined
@@ -42,6 +46,39 @@ mergeSpec = do
     forAllInfinite (pairOf $ sortedGen Infinite) $ \(xs, ys) ->
         (trunc $ merge xs ys)
           === (trunc $ sort (trunc xs ++ trunc ys))
+
+diffSpec :: Spec
+diffSpec = do
+  it "both empty" $
+    diff [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    diff [] undefined `shouldBe` ([] :: [Int])
+  it "right empty" $
+    diff [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+  it "arbitrary finite lists" $
+    forAll (pairOf (sortedGen2 Finite)) $ \(xs, ys) ->
+      (diff xs ys) `shouldBe` (xs \\ ys)
+  -- too hard to construct arbitrary infinite lists test.
+  -- simplest way to determine a prefix of the difference of two infinite lists
+  -- is to construct the diff algorithm itself. So we settle for a hand-made unit test.
+  it "infinite lists" $
+    let xs = [1..]
+        ys = map (^2) [1..]
+        ds = diff xs ys
+        square x = any (\t -> t^2 == x) [1..x]
+     in filter (not . square) xs `shouldStartWith` (take maxListLength $ diff xs ys)
+
+diffBySpec :: Spec
+diffBySpec = do
+  it "both empty" $
+    diffBy undefined [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    diffBy undefined [] undefined `shouldBe` ([] :: [Int])
+  it "right empty" $
+    diffBy undefined [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+  -- The functionality testing is done in diffSpec. This is just a sanity check
+  it "finite list" $
+    diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
 
 mergeBySpec :: Spec
 mergeBySpec = do
@@ -108,3 +145,15 @@ pairOf gen = (,) <$> gen <*> gen
 
 trunc :: [a] -> [a]
 trunc = take maxListLength
+
+-- generators
+-- finite sorted list
+sortedGen2 :: Finiteness -> Gen [Int]
+sortedGen2 finiteness = do
+  rs <- infiniteListOf (choose (1, 4))
+  xs <- case finiteness of
+          Finite -> do s <- getSize
+                       len <- choose (1, s)
+                       return [1..len]
+          Infinite -> return [1..]
+  return $ concat $ zipWith replicate rs xs

@@ -42,6 +42,7 @@ executables:
       - Data.List.PredicateSpec
     dependencies:
       - hspec
+      - hspec-expectations
       - QuickCheck
       - random
       - tsil

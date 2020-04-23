@@ -50,17 +50,44 @@ mergeBy cmp (x:xs) (y:ys)
   | cmp y x /= LT = x:(mergeBy cmp xs (y:ys))
   | otherwise     = y:(mergeBy cmp (x:xs) ys)
 
+{-| Yields all the elements in the first list that are not in the second, with
+    multiplicities considered. In other words, this is a diff of multisets.
+
+    >>> diff [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 5, 7]
+    [1, 3, 3, 4, 6]
+-}
 diff :: (Ord a) => [a] -> [a] -> [a]
-diff = undefined
+diff = diffBy compare
 
+{-| Like @diff@ with a custom comparison function. -}
 diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-diffBy = undefined
+diffBy cmp [] _ = []
+diffBy cmp xs [] = xs
+diffBy cmp (x:xs) (y:ys) =
+  case cmp x y of
+    LT -> x:(diffBy cmp xs (y:ys))
+    EQ -> diffBy cmp xs ys
+    GT -> diffBy cmp (x:xs) ys
 
+{-| Yields all the elements in both lists with multiplicities considered.
+
+    >>> intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7]
+    [2, 3, 3, 5]
+-}
 intersect :: (Ord a) => [a] -> [a] -> [a]
-intersect = undefined
+intersect = intersectBy compare
 
+{-| Like @intersect@ with a custom compaison function. Left side is preferred as
+    the "representative" of a matching pair in case of ties.
+-}
 intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-intersectBy = undefined
+intersectBy cmp [] _ = []
+intersectBy cmp _ [] = []
+intersectBy cmp (x:xs) (y:ys) =
+  case cmp x y of
+    LT -> intersectBy cmp xs (y:ys)
+    EQ -> x:(intersectBy cmp xs ys)
+    GT -> intersectBy cmp (x:xs) ys
 
 -- TODO: Reconsider this implementation
 {-| Merge a list of lists. Works with infinite lists of infinite lists.

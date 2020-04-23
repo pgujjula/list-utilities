@@ -104,7 +104,7 @@ allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
-allAdjUniqueBy = undefined
+allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
 -- TODO Think of a better name
 ascendingContiguous :: (Enum a) => [a] -> Bool

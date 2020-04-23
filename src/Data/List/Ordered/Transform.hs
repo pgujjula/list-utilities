@@ -7,7 +7,7 @@
 
     Transform ordered lists to other ordered lists.
 -}
-module Data.List.Transform.Ordered
+module Data.List.Ordered.Transform
   ( merge
   , mergeBy
   , diff

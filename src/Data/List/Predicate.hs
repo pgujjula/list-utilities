@@ -16,12 +16,16 @@ module Data.List.Predicate
 
   , allUnique
   , allUniqueBy
+  , allAdjUnique
+  , allAdjUniqueBy
 
   , ascendingContiguous
   , descendingContiguous
 
   , palindrome
   ) where
+
+import Data.List (sort, sortBy)
 
 {-| Whether all the elements in the list are equal.
   
@@ -89,12 +93,18 @@ sortedBy _ [] = True
 sortedBy _ [_] = True
 sortedBy cmp xs = and $ zipWith (\a b -> cmp a b /= GT) xs (tail xs)
 
--- TODO: Consider whethe to enforce input being sorted
 allUnique :: (Ord a) => [a] -> Bool
-allUnique = undefined
+allUnique = allAdjUnique . sort
 
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
-allUniqueBy = undefined
+allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
+  where eq a b = cmp a b == EQ
+
+allAdjUnique :: (Eq a) => [a] -> Bool
+allAdjUnique = allAdjUniqueBy (==)
+
+allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
+allAdjUniqueBy = undefined
 
 -- TODO Think of a better name
 ascendingContiguous :: (Enum a) => [a] -> Bool

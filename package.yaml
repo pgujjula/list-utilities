@@ -24,7 +24,6 @@ library:
   source-dirs: src
   exposed-modules:
     - Data.List.Digit
-#    - Data.List.Ordered.Predicate
     - Data.List.Ordered.Transform
     - Data.List.Predicate
 #    - Data.List.Filter
@@ -38,6 +37,7 @@ executables:
     main: Spec.hs
     other-modules:
       - Data.List.DigitSpec
+      - Data.List.Ordered.TransformSpec
       - Data.List.TransformSpec
       - Data.List.PredicateSpec
     dependencies:

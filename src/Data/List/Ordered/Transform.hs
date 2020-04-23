@@ -10,12 +10,16 @@
 module Data.List.Ordered.Transform
   ( merge
   , mergeBy
+
   , diff
   , diffBy
+
   , intersect
   , intersectBy
+
   , mergeMany
   , mergeManyBy
+
   , applyMerge
   , applyMergeBy
   ) where
@@ -25,7 +29,7 @@ import qualified Data.PQueue.Prio.Min as PQueue
 
 import qualified Data.List as List (null)
 
-{-| Merge two ordered lists. Works lazily on infinite lists.
+{-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
     
     >>> merge [2, 4, 6, 8] [1, 3, 5, 7]
     [1, 2, 3, 4, 5, 6, 7]
@@ -34,7 +38,7 @@ merge :: (Ord a) => [a] -> [a] -> [a]
 merge = mergeBy compare
 
 {-| Merge two lists with a custom comparison function. The two lists are
-    assumed to be ordered by the same function.
+    assumed to be ordered by the same function. Left side is preferred on ties.
     
     >>> mergeBy (comparing Down) [8, 6, 4, 2] [7, 5, 3, 1]
     [8, 7, 6, 5, 4, 3, 2, 1]
@@ -43,8 +47,8 @@ mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 mergeBy _ [] ys = ys
 mergeBy _ xs [] = xs
 mergeBy cmp (x:xs) (y:ys)
-  | cmp y x == GT = y:(mergeBy cmp (x:xs) ys)
-  | otherwise     = x:(mergeBy cmp xs (y:ys))
+  | cmp y x /= LT = x:(mergeBy cmp xs (y:ys))
+  | otherwise     = y:(mergeBy cmp (x:xs) ys)
 
 diff :: (Ord a) => [a] -> [a] -> [a]
 diff = undefined

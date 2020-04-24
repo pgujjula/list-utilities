@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
 {-| Module      : Data.List.Ordered.Transform
     Description : Transform ordered lists to other ordered lists.
     Copyright   : (c) Preetham Gujjula, 2020
@@ -27,10 +28,13 @@ module Data.List.Ordered.Transform
   , applyMergeBy
   ) where
 
+import Data.Reflection
+import Data.Proxy (Proxy(Proxy))
 import Data.PQueue.Prio.Min (MinPQueue)
 import qualified Data.PQueue.Prio.Min as PQueue
 
 import qualified Data.List as List (null)
+import Data.List as List (sort)
 
 {-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
     
@@ -124,13 +128,14 @@ intersectBy cmp (x:xs) (y:ys) =
 -}
 mergeMany :: (Ord a) => [[a]] -> [a]
 mergeMany xss = 
-  let xss' = filter (not . List.null) xss
-   in if List.null xss'
-      then []
-      else let n = Plane (filter (not . List.null) xss')
-            in generate (PQueue.singleton (root n) n)
+  if List.null xss'
+  then []
+  else let n = Head (filter (not . List.null) xss')
+        in generate (PQueue.singleton (root n) n)
 
    where
+     xss' = filter (not . List.null) xss
+
      generate :: (Ord a) => MinPQueue a (Node a) -> [a]
      generate pq =
        case PQueue.minViewWithKey pq of
@@ -140,26 +145,60 @@ mergeMany xss =
 
 
      null :: Node a -> Bool
-     null (Plane xss) = List.null xss
-     null (Line xs)   = List.null xs
+     null (Head xss) = List.null xss
+     null (Tail xs)   = List.null xs
 
      root :: Node a -> a
-     root (Plane xss) = head (head xss)
-     root (Line xs) = head xs
+     root (Head xss) = head (head xss)
+     root (Tail xs) = head xs
 
      children :: Node a -> [(a, Node a)]
      children node =
         map (\x -> (root x, x))
       $ filter (not . null)
       $ case node of
-          (Line (x:xs))        -> [Line xs]
-          (Plane ((x:xs):xss)) -> [Line xs, Plane xss]
+          (Tail (x:xs))        -> [Tail xs]
+          (Head ((x:xs):xss)) -> [Tail xs, Head xss]
 
-data Node a = Plane [[a]] | Line [a]
+data Node a = Head [[a]] | Tail [a]
   deriving (Show, Ord, Eq)
 
+data ReflectedOrd s a = ReflectOrd a
+
+reflectOrd :: Proxy s -> a -> ReflectedOrd s a
+reflectOrd _ a = ReflectOrd a
+
+unreflectOrd :: ReflectedOrd s a -> a
+unreflectOrd (ReflectOrd a) = a
+
+data ReifiedOrd a = ReifiedOrd {
+  reifiedEq :: a -> a -> Bool,
+  reifiedCompare :: a -> a -> Ordering }
+
+sortBy :: (a -> a -> Ordering) -> [a] -> [a]
+sortBy ord l =
+  reify (fromCompare ord) $ \ p ->
+    map unreflectOrd . sort . map (reflectOrd p) $ l
+
+-- | Creates a `ReifiedOrd` with a comparison function. The equality function
+--   is deduced from the comparison.
+fromCompare :: (a -> a -> Ordering) -> ReifiedOrd a
+fromCompare ord = ReifiedOrd {
+  reifiedEq = \x y -> ord x y == EQ,
+  reifiedCompare = ord }
+
+instance Reifies s (ReifiedOrd a) => Eq (ReflectedOrd s a) where
+  (==) (ReflectOrd x) (ReflectOrd y) =
+    reifiedEq (reflect (Proxy :: Proxy s)) x y
+
+instance Reifies s (ReifiedOrd a) => Ord (ReflectedOrd s a) where
+  compare (ReflectOrd x) (ReflectOrd y) =
+    reifiedCompare (reflect (Proxy :: Proxy s)) x y
+
 mergeManyBy :: (a -> a -> Ordering) -> [[a]] -> [a]
-mergeManyBy = undefined
+mergeManyBy ord l =
+  reify (fromCompare ord) $ \p ->
+    map unreflectOrd . mergeMany . map (map (reflectOrd p)) $ l
 
 -- TODO: Improve this explanation.
 {-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
@@ -172,7 +211,7 @@ mergeManyBy = undefined
      * y1 >= y2 => op x y1 >= op x y2
 -}
 applyMerge :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
-applyMerge op xs ys = mergeMany $ map (\x -> map (op x) ys) xs
+applyMerge = applyMergeBy compare
 
 applyMergeBy :: (c -> c -> Ordering) -> (a -> b -> c) -> [a] -> [b] -> [c]
-applyMergeBy = undefined
+applyMergeBy cmp op xs ys = mergeManyBy cmp $ map (\x -> map (op x) ys) xs

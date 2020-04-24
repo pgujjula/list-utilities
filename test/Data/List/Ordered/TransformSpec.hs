@@ -6,8 +6,11 @@ import Test.Hspec.QuickCheck (modifyMaxSuccess)
 import Test.QuickCheck (listOf, arbitrary, forAll, forAllShow, Gen, (===), Property,
                         generate, infiniteList, quickCheck, Testable, choose, infiniteListOf, getSize)
 import qualified Test.QuickCheck as QC
+import Data.Functor ((<&>))
+import Debug.Trace (trace)
 
-import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy, intersect, intersectBy, union, unionBy)
+import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy, intersect, intersectBy, union, unionBy, mergeMany, mergeManyBy, applyMerge, applyMergeBy)
+import Control.Arrow ((>>>))
 import Data.List ((\\))
 import qualified Data.List as List (intersect, union)
 import Data.Ord (comparing, Down(Down))
@@ -32,6 +35,12 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "union" unionSpec 
        describe "unionBy" unionBySpec
        describe "test functions together" togetherSpec
+
+       describe "mergeMany" mergeManySpec
+       describe "mergeManyBy" mergeManyBySpec
+
+       describe "applyMerge" applyMergeSpec
+       describe "applyMergeBy" applyMergeBySpec
 
 unexp :: Expectation
 unexp = undefined
@@ -224,7 +233,105 @@ sortedGen2 finiteness = do
   rs <- infiniteListOf (choose (1, 4))
   xs <- case finiteness of
           Finite -> do s <- getSize
-                       len <- choose (1, s)
+                       len <- (1 +) <$> choose (0, s)
                        return [1..len]
           Infinite -> return [1..]
   return $ concat $ zipWith replicate rs xs
+
+-- (products xs ys) !! i !! j == (xs !! i) * (ys !! j)
+products :: (Num a) => [a] -> [a] -> [[a]]
+products xs ys = map (\x -> map (*x) ys) xs
+
+productsGen :: Finiteness -> Finiteness -> Gen [[Int]]
+productsGen f1 f2 = products <$> sortedGen2 f1 <*> sortedGen2 f2
+
+reverseProductsGen :: Finiteness -> Finiteness -> Gen [[Int]]
+reverseProductsGen f1 f2 = products <$> (reverse <$> sortedGen2 f1)
+                                    <*> (reverse <$> sortedGen2 f2)
+
+naive :: (Ord a) => [[a]] -> [a]
+naive = filter (not . null)
+        >>> take maxListLength
+        >>> map (take maxListLength)
+        >>> concat
+        >>> sort
+        >>> take maxListLength
+
+mergeManySpec :: Spec
+mergeManySpec = do
+  it "empty list" $
+    mergeMany [] `shouldBe` ([] :: [Int])
+  it "list of empty lists" $
+    mergeMany (replicate 10 []) `shouldBe` ([] :: [Int])
+
+  let test xss = take maxListLength (mergeMany xss) `shouldBe` naive xss
+      qcTest xss = take maxListLength (mergeMany xss) === naive xss
+      show' = const ""
+   in do
+      it "finite list of finite lists" $
+        test $ products [1, 2, 3] [1, 2, 3]
+      it "finite list of infinite lists" $
+        test $ products [1, 2, 3] [1..]
+      it "infinite list of finite lists" $
+        test $ products [1..] [1, 2, 3]
+      it "infinite list of infinite lists" $
+        test $ products [1..] [1..]
+      it "arbitrary finite lists of finite lists" $
+        forAllShow (productsGen Finite Finite) show' qcTest
+      it "arbitrary infinite lists of finite lists" $
+        forAllShow (productsGen Infinite Finite) show' qcTest
+      it "arbitrary finite lists of infinite lists" $
+        forAllShow (productsGen Finite Infinite) show' qcTest
+      it "arbitrary infinite lists of infinite lists" $
+        forAllShow (productsGen Infinite Infinite) show' qcTest
+
+mergeManyBySpec :: Spec
+mergeManyBySpec = do
+  it "empty list" $
+    mergeManyBy undefined [] `shouldBe` ([] :: [Int])
+  it "list of empty lists" $
+    mergeManyBy undefined (replicate 10 []) `shouldBe` ([] :: [Int])
+  it "finite list of finite lists" $
+    mergeManyBy (comparing Down) (products [3, 2, 1] [3, 2, 1]) `shouldBe` [9, 6, 6, 4, 3, 3, 2, 2, 1]
+
+applyMergeSpec :: Spec
+applyMergeSpec = do
+  it "both empty" $
+    applyMerge undefined [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    applyMerge undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
+  it "right empty" $
+    applyMerge undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
+
+  let naive op xs ys = take maxListLength $ sort (op <$> (take maxListLength xs) <*> (take maxListLength ys))
+      test op xs ys = take maxListLength (applyMerge op xs ys) `shouldBe` naive op xs ys
+      qcTest op (xs, ys) = take maxListLength (applyMerge op xs ys) === (naive op xs ys)
+   in do
+      it "both finite" $
+        test (*) [2, 4, 8] [3, 6, 9]
+      it "left finite, right infinite" $
+        test (*) [1..] [1, 2, 3]
+      it "left infinite, right finite" $
+        test (*) [1, 2, 3] [1..3]
+      it "left finite, right infinite" $
+        test (*) [1..] [1..]
+
+      it "arbitrary finite, finite" $
+        forAll (pairOf (sortedGen2 Finite)) (qcTest (*))
+      it "arbitrary finite, infinite" $
+        forAll ((,) <$> (sortedGen2 Finite) <*> (sortedGen2 Infinite)) (qcTest (*))
+      it "arbitrary finite, infinite" $
+        forAll ((,) <$> (sortedGen2 Infinite) <*> (sortedGen2 Finite)) (qcTest (*))
+      it "arbitrary infinite, infinite" $
+        forAll (pairOf (sortedGen2 Infinite)) (qcTest (*))
+
+applyMergeBySpec :: Spec
+applyMergeBySpec = do
+  it "both empty" $
+    applyMergeBy undefined undefined [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    applyMergeBy undefined undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
+  it "right empty" $
+    applyMergeBy undefined undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
+  it "both finite" $
+    applyMergeBy (comparing Down) (*) [3, 2, 1] [3, 2, 1] `shouldBe` [9, 6, 6, 4, 3, 3, 2, 2, 1]

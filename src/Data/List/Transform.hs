@@ -148,13 +148,13 @@ deleteAdjDupsBy eq (xs@(x:_)) = x:(map fst $ filter (not . (uncurry eq)) $ zip (
 rotate :: Int -> [a] -> [a]
 rotate _ [] = []
 rotate n xs = 
-  let (ys, zs) = splitAt split xs
+  let (ys, zs) = splitAt nModLength xs
    in zs ++ ys
-  where split
+  where nModLength
           | n < 0     = n `mod` length xs
           | otherwise = n `rem` lengthTo n xs
 
-        -- The length of an list, up to a maximum m. The length of any list
-        -- with length longer than m is reported as m + 1.
+        -- The length of an list, up to a maximum mx. The length of any list
+        -- with length longer than m is reported as mx + 1.
         lengthTo :: Int -> [a] -> Int
-        lengthTo m = sum . take (m + 1) . zipWith const (repeat 1)
+        lengthTo mx = sum . take (mx + 1) . zipWith const (repeat 1)

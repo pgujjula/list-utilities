@@ -30,6 +30,7 @@ library:
     - Data.List.Transform
   dependencies:
     - pqueue
+    - reflection
 
 executables:
   spec:

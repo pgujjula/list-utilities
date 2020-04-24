@@ -130,7 +130,6 @@ deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
 deleteAdjDupsBy eq (xs@(x:_)) = x:(map fst $ filter (not . (uncurry eq)) $ zip (tail xs) xs)
 
--- TODO: Simplify this implementation
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is
     right. Zero- and left-rotation work with infinite lists. Also works if the
     offset is greater than the length of the list.
@@ -147,18 +146,15 @@ deleteAdjDupsBy eq (xs@(x:_)) = x:(map fst $ filter (not . (uncurry eq)) $ zip (
     [2, 3, 1]
 -}
 rotate :: Int -> [a] -> [a]
-rotate n xs
-  | null xs   = []
-  | n >= 0    = let d = case lengthTo n xs of
-                          Nothing -> n
-                          Just l  -> n `rem` l
-                    (ys, zs) = splitAt d xs
-                 in zs ++ ys
-  | otherwise = let (ys, zs) = splitAt (n `mod` length xs) xs
-                 in zs ++ ys
+rotate _ [] = []
+rotate n xs = 
+  let (ys, zs) = splitAt split xs
+   in zs ++ ys
+  where split
+          | n < 0     = n `mod` length xs
+          | otherwise = n `rem` lengthTo n xs
 
-lengthTo :: Int -> [a] -> Maybe Int
-lengthTo n xs =
-  if (not . null) $ drop n xs
-  then Nothing
-  else Just (length xs)
+        -- The length of an list, up to a maximum m. The length of any list
+        -- with length longer than m is reported as m + 1.
+        lengthTo :: Int -> [a] -> Int
+        lengthTo m = sum . take (m + 1) . zipWith const (repeat 1)

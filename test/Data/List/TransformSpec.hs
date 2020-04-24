@@ -137,6 +137,13 @@ rotateSpec = do
   it "empty list, negative offset" $
     rotate (-2) [] `shouldBe` ([] :: [Int])
 
+  it "singleton list, 0 offset" $
+    rotate 0 [1] `shouldBe` [1]
+  it "singleton list, positive offset" $
+    rotate 2 [1] `shouldBe` [1]
+  it "singleton list, negative offset" $
+    rotate (-2) [1] `shouldBe` [1]
+
   let xs = [1..6] :: [Int]
   let naturals = [1..] :: [Int]
   it "finite list, 0 offset" $
@@ -161,7 +168,7 @@ rotateSpec = do
   it "ininite list, positive offset" $
     take 10 (rotate 10 naturals) `shouldBe` [11..20]
 
-  let bigOffset = 3 * (10 :: Int)^(8 :: Int) -- TODO: disable warnings, this is ugly
+  let bigOffset = 3*10^8
   it "finite list, huge positive offset" $
     rotate bigOffset xs `shouldBe` rotate (bigOffset `mod` length xs) xs
   it "finite list, huge negative offset" $

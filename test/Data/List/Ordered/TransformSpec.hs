@@ -276,6 +276,9 @@ mergeManySpec = do
         test $ products [1..] [1, 2, 3]
       it "infinite list of infinite lists" $
         test $ products [1..] [1..]
+
+      it "raggedly finite list" $ 
+        test $ [[], [], [1, 2, 3], [1, 2], [2, 5], [], [], [3, 3, 3, 4]]
       it "arbitrary finite lists of finite lists" $
         forAllShow (productsGen Finite Finite) show' qcTest
       it "arbitrary infinite lists of finite lists" $

@@ -7,8 +7,9 @@ import Test.QuickCheck (listOf, arbitrary, forAll, forAllShow, Gen, (===), Prope
                         generate, infiniteList, quickCheck, Testable, choose, infiniteListOf, getSize)
 import qualified Test.QuickCheck as QC
 
-import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy)
+import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy, intersect, intersectBy, union, unionBy)
 import Data.List ((\\))
+import qualified Data.List as List (intersect, union)
 import Data.Ord (comparing, Down(Down))
 
 import Data.List (sort, sortBy)
@@ -26,6 +27,11 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "mergeBy" mergeBySpec
        describe "diff" diffSpec
        describe "diffBy" diffBySpec
+       describe "intersect" intersectSpec
+       describe "intersectBy" intersectBySpec
+       describe "union" unionSpec 
+       describe "unionBy" unionBySpec
+       describe "test functions together" togetherSpec
 
 unexp :: Expectation
 unexp = undefined
@@ -119,6 +125,71 @@ mergeBySpec = do
     mergeBy (comparing snd) xs ys `shouldBe`
       [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
        ("x", 4), ("x", 4), ("y", 4), ("x", 5), ("y", 5)]
+
+intersectSpec :: Spec
+intersectSpec = do
+  it "both empty" $
+    intersect [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    intersect [] [1, 2, 3] `shouldBe` ([] :: [Int])
+  it "right empty" $
+    intersect [1, 2, 3] [] `shouldBe` ([] :: [Int])
+
+  -- since the Data.List implementation of intersect doesn't have the multiset
+  -- semantics of this impelementation, we can't use it as a reference for 
+  -- auto-generated QuickCheck tests. Implementing a "naive" intersect is also
+  -- difficult. So we settle for hand-written unit tests.
+  it "finite list" $
+    intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7] `shouldBe`
+      [2, 3, 3, 5]
+
+intersectBySpec :: Spec
+intersectBySpec = do
+  it "both empty" $
+    intersectBy undefined [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    intersectBy undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
+  it "right empty" $
+    intersectBy undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
+  it "finite list" $
+    intersectBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 1]
+  it "left side preferred" $ do
+    let xs = map ("x",) [1, 2, 3, 4]
+    let ys = map ("y",) [1, 2, 3, 5]
+    intersectBy (comparing snd) xs ys `shouldBe` map ("x",) [1, 2, 3]
+
+unionSpec :: Spec
+unionSpec = do
+  it "both empty" $
+    union [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    union [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
+  it "right empty" $
+    union [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+  it "finite list" $
+    union [1, 3, 3, 4, 5] [2, 3, 5, 7] `shouldBe` [1, 2, 3, 3, 4, 5, 7]
+
+unionBySpec :: Spec
+unionBySpec = do
+  it "both empty" $
+    unionBy undefined [] [] `shouldBe` ([] :: [Int])
+  it "left empty" $
+    unionBy undefined [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
+  it "right empty" $
+    unionBy undefined [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+  it "finite list" $
+    unionBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 2, 1, 0]
+  it "left side preferred" $ do
+    let xs = map ("x",) [1, 2, 3, 4]
+    let ys = map ("y",) [1, 2, 3, 5]
+    unionBy (comparing snd) xs ys `shouldBe` 
+      [("x", 1), ("x", 2), ("x", 3), ("x", 4), ("y", 5)]
+
+togetherSpec :: Spec
+togetherSpec = do
+  it "x ∪ y == (x ∩ y) + (x - y) + (y - x)" $ do
+    forAll (pairOf (repeatedSortedGen Finite)) $ \(xs, ys) ->
+      (union xs ys) === (sort $ (intersect xs ys) ++ (diff xs ys) ++ (diff ys xs))
 
 -- Utilities
 data Finiteness = Finite | Infinite

@@ -17,6 +17,9 @@ module Data.List.Ordered.Transform
   , intersect
   , intersectBy
 
+  , union
+  , unionBy
+
   , mergeMany
   , mergeManyBy
 
@@ -68,6 +71,28 @@ diffBy cmp (x:xs) (y:ys) =
     LT -> x:(diffBy cmp xs (y:ys))
     EQ -> diffBy cmp xs ys
     GT -> diffBy cmp (x:xs) ys
+
+{-| Yields all the elements in either list, with
+    multiplicities considered. The number of times x is in the output is the
+    max of how many times it is in each list. 
+
+    >>> union [1, 3, 3, 4, 5] [2, 3, 5, 7]
+    [1, 2, 3, 3, 4, 5, 7]
+-}
+union :: (Ord a) => [a] -> [a] -> [a]
+union = unionBy compare
+
+{-| Like @union@ with a custom comparison function. Left side is preferred in case
+    of matching elements.
+ -}
+unionBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+unionBy cmp [] xs = xs
+unionBy cmp xs [] = xs
+unionBy cmp (x:xs) (y:ys) =
+  case cmp x y of
+    LT -> x:(unionBy cmp xs (y:ys))
+    EQ -> x:(unionBy cmp xs ys)
+    GT -> y:(unionBy cmp (x:xs) ys)
 
 {-| Yields all the elements in both lists with multiplicities considered.
 

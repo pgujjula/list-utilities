@@ -3,8 +3,8 @@ version:             0.1.0.0
 github:              "pgujjula/tsil"
 license:             GPL-3
 author:              "Preetham Gujjula"
-maintainer:          "preethamgujjula@gmail.com"
-copyright:           "2020 Preetham Gujjul"
+maintainer:          "preetham.gujjula@gmail.com"
+copyright:           "2020 Preetham Gujjula"
 
 extra-source-files:
 - README.md

@@ -117,16 +117,18 @@ groupAdjBy eq = foldr f []
 
 -- TODO: Implement.
 deleteDups :: (Ord a) => [a] -> [a]
-deleteDups = undefined
+deleteDups = deleteAdjDups . sort
 
 deleteDupsBy :: (a -> a -> Ordering) -> [a] -> [a]
-deleteDupsBy = undefined
+deleteDupsBy cmp = deleteAdjDupsBy eq . sortBy cmp
+  where eq a b = cmp a b == EQ
 
 deleteAdjDups :: (Eq a) => [a] -> [a]
-deleteAdjDups = undefined
+deleteAdjDups = deleteAdjDupsBy (==)
 
 deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
-deleteAdjDupsBy = undefined
+deleteAdjDupsBy _ [] = []
+deleteAdjDupsBy eq (xs@(x:_)) = x:(map fst $ filter (not . (uncurry eq)) $ zip (tail xs) xs)
 
 -- TODO: Simplify this implementation
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is

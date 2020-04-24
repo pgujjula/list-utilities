@@ -1,5 +1,6 @@
 module Data.List.PredicateSpec where
 
+
 import Data.Function (on)
 import Data.Ord (Down(Down), comparing)
 

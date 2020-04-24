@@ -1,20 +1,24 @@
 module Data.List.TransformSpec (spec) where
 
-import Test.Hspec            (Spec, describe, it, shouldBe)
+import Test.Hspec            (Spec, describe, it, shouldBe, hspec)
 import Test.Hspec.QuickCheck (modifyMaxSuccess)
---import Test.QuickCheck       (Property)
+import Test.QuickCheck       (Property, (===), forAll, Gen, Testable, forAllShow, choose, listOf)
+import Data.List (nub, nubBy, sort, sortBy)
+import Debug.Trace (trace)
 
 --import Data.Function         (on)
 import Data.List.Transform   (group, groupBy,
-                              rotate, takeEvery, takeUntil, dropUntil)
+                              rotate, takeEvery, takeUntil, dropUntil, deleteDups, deleteDupsBy, deleteAdjDups, deleteAdjDupsBy)
+import Data.List.Gen (sortedGen, repeatedSortedGen, Finiteness(Infinite, Finite))
 import Data.Ord              (Down (Down), comparing)
+import Data.Function (on)
 
 -- TODO: Remove if unnecessary
 numTests :: Int
 numTests = 1000
 
---maxListLength :: Int
---maxListLength = 1000
+maxListLength :: Int
+maxListLength = 10
 
 spec :: Spec
 spec = modifyMaxSuccess (const numTests) $ do
@@ -25,8 +29,12 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "group" groupSpec
        describe "groupBy" groupBySpec
 --       describe "groupAdjacentBy" groupAdjacentBySpec
-       describe "rotateSpec" rotateSpec
+       describe "rotate" rotateSpec
 --       describe "mergeManySpec" mergeManySpec
+       describe "deleteDups" rotateSpec
+       describe "deleteDupsBy" deleteDupsBySpec
+       describe "deleteAdjDups" deleteAdjDupsSpec
+       describe "deleteAdjDupsBy" deleteAdjDupsBySpec
 
 takeEverySpec :: Spec
 takeEverySpec = do
@@ -173,3 +181,54 @@ rotateSpec = do
 --  it "works with transposing" (undefined :: Property)
 --  it "works with finite lists of finite lists" (undefined :: Property)
 --  it "works with infinite lists" (undefined :: Property)
+
+deleteDupsSpec :: Spec
+deleteDupsSpec = do
+  it "empty list" $ do
+    deleteDups [] `shouldBe` ([] :: [Int])
+  it "singleton list" $ do
+    deleteDups [1] `shouldBe` ([1] :: [Int])
+  it "arbitrary finite lists" $ do
+    forAll (listOf (choose (1 :: Int, 10))) (\xs -> deleteDups xs === (sort $ nub xs))
+
+deleteDupsBySpec :: Spec
+deleteDupsBySpec = do
+  it "empty list" $ do
+    deleteDupsBy undefined [] `shouldBe` ([] :: [Int])
+  it "singleton list" $ do
+    deleteDupsBy undefined [1] `shouldBe` ([1] :: [Int])
+  it "arbitrary finite lists" $ do
+    let cmp = comparing (`rem` 5)
+        eq a b = cmp a b == EQ
+        gen = listOf (choose (1 :: Int, 10))
+     in forAll gen (\xs -> deleteDupsBy cmp xs === (sortBy cmp $ nubBy eq xs))
+
+forAllInfinite :: (Show a, Testable prop) => Int -> Gen [a] -> ([a] -> prop) -> Property
+forAllInfinite maxListLen gen = forAllShow gen (show . take maxListLen)
+
+deleteAdjDupsSpec :: Spec
+deleteAdjDupsSpec = do
+  it "empty list" $ do
+    deleteDups [] `shouldBe` ([] :: [Int])
+  it "singleton list" $ do
+    deleteDups [1] `shouldBe` ([1] :: [Int])
+  it "arbitrary finite lists" $ do
+    forAll (repeatedSortedGen Finite) (\xs -> deleteAdjDups xs === (sort $ nub xs))
+  it "arbitrary infinite lists" $ do
+    forAll (repeatedSortedGen Infinite) $ \xs -> 
+      let ys = take maxListLength $ deleteAdjDups xs
+          maxY = last ys
+          naive = sort $ nub $ takeWhile (<= maxY) xs
+       in ys === naive
+
+deleteAdjDupsBySpec :: Spec
+deleteAdjDupsBySpec = do
+  it "empty list" $ do
+    deleteDupsBy undefined [] `shouldBe` ([] :: [Int])
+  it "singleton list" $ do
+    deleteDupsBy undefined [1] `shouldBe` ([1] :: [Int])
+  it "arbitrary finite lists" $ do
+    let cmp = comparing (`rem` 5)
+        eq a b = cmp a b == EQ
+     in forAll (sortBy cmp <$> repeatedSortedGen Finite) $ \xs -> 
+          deleteAdjDupsBy eq xs === (sortBy cmp $ nubBy eq xs)

@@ -19,8 +19,8 @@ module Data.List.Predicate
   , allAdjUnique
   , allAdjUniqueBy
 
-  , ascendingContiguous
-  , descendingContiguous
+  , ascSequential
+  , descSequential
 
   , palindrome
   ) where
@@ -108,12 +108,28 @@ allAdjUnique = allAdjUniqueBy (==)
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
--- TODO Think of a better name
-ascendingContiguous :: (Enum a) => [a] -> Bool
-ascendingContiguous = undefined
+{-| Whether the list is increasing sequentially.
 
-descendingContiguous :: (Enum a) => [a] -> Bool
-descendingContiguous = undefined
+    >>> ascSequential [1, 2, 3]
+    True
+    >>> ascSequential [1, 2, 4]
+    False
+-}
+ascSequential :: (Enum a) => [a] -> Bool
+ascSequential xs = and $ zipWith (==) xs' [head xs'..]
+  where xs' = map fromEnum xs
+
+{-| Whether the list is descending sequentially.
+
+    >>> descSequential [3, 2, 1]
+    True
+    >>> descSequential [3, 2, 2]
+    False
+-}
+descSequential :: (Enum a) => [a] -> Bool
+descSequential xs = and $ zipWith (==) xs' [x, x-1..]
+  where xs' = map fromEnum xs
+        x = head xs'
 
 {-| Whether the input is a palindrome, i.e., the same forwards and backwards.
 

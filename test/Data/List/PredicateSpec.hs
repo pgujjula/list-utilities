@@ -9,7 +9,8 @@ import Test.Hspec.QuickCheck (modifyMaxSuccess)
 import Test.QuickCheck (Gen, arbitrary, oneof, listOf, suchThat, forAll)
 
 import Data.List.Predicate   (allEqual, allEqualBy, sorted, sortedBy, allAdjUnique,
-                              allAdjUniqueBy, allUniqueBy, allUnique, palindrome)
+                              allAdjUniqueBy, allUniqueBy, allUnique, palindrome,
+                              ascSequential, descSequential)
 
 unexp :: Expectation
 unexp = undefined
@@ -27,6 +28,8 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "allUniqueBy" allAdjUniqueBySpec
        describe "allAdjUnique" allAdjUniqueSpec
        describe "allAdjUniqueBy" allAdjUniqueBySpec
+       describe "ascSequentialSpec" ascSequentialSpec
+       describe "descSequentialSpec" descSequentialSpec
        describe "palindrome" palindromeSpec
 
 allEqualSpec :: Spec
@@ -175,3 +178,31 @@ palindromeSpec = do
     forAll palindromeGen palindrome
   it "arbitrary non-palindromes" $ do
     forAll nonPalindromeGen (not . palindrome)
+
+ascSequentialSpec :: Spec
+ascSequentialSpec = do
+  it "empty list" $ 
+    ascSequential ([] :: [Int]) `shouldBe` True
+  it "singleton list" $
+    ascSequential [1] `shouldBe` True
+  it "finite list, ascending" $
+    ascSequential [1..10] `shouldBe` True
+  it "finite list, not ascending" $ do
+    ascSequential ([1..5] ++ [5] ++ [undefined] ++ [6..10]) `shouldBe` False
+    ascSequential ([1..5] ++ [4] ++ [undefined] ++ [6..10]) `shouldBe` False
+  it "infinite list, not ascending" $
+    ascSequential ([1..10] ++ [9] ++ [undefined] ++ [9..]) `shouldBe` False
+
+descSequentialSpec :: Spec
+descSequentialSpec = do
+  it "empty list" $
+    descSequential ([] :: [Int]) `shouldBe` True
+  it "singleton list" $
+    descSequential ([] :: [Int]) `shouldBe` True
+  it "finite list, descending" $
+    descSequential [10, 9..1] `shouldBe` True
+  it "finite list, not ascending" $ do
+    descSequential ([10, 9..6] ++ [6] ++ [undefined] ++ [5, 4..1]) `shouldBe` False
+    descSequential ([10, 9..6] ++ [7] ++ [undefined] ++ [5, 4..1]) `shouldBe` False
+  it "infinite list, not ascending" $
+    descSequential ([0, -1..(-10)] ++ [-9] ++ [undefined] ++ [-9, -8..]) `shouldBe` False

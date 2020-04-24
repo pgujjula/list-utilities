@@ -10,7 +10,7 @@ import Test.Hspec.QuickCheck (modifyMaxSuccess)
 import Test.QuickCheck       (Gen, Property, choose, elements, forAll, listOf,
                               oneof, resize, sized, suchThat, (===))
 
-import Data.List.Digit       (fromDigits, numDigits, sumDigits, toDigits)
+import Data.List.Digit       (fromDigits, toDigits)
 
 numTests :: Int
 numTests = 1000
@@ -20,52 +20,8 @@ maxNumDigits = 50
 
 spec :: Spec
 spec = modifyMaxSuccess (const numTests) $ do
-       describe "numDigits" numDigitsSpec
-       describe "sumDigits" sumDigitsSpec
        describe "toDigits" toDigitsSpec
        describe "fromDigits" fromDigitsSpec
-
-numDigitsSpec :: Spec
-numDigitsSpec = do
-  let testDigits :: (Integral a) => [a] -> Expectation
-      testDigits ds = forM_ ds $ \x -> numDigits x `shouldBe` 1
-   in do
-      it "single-digit Ints"
-        $ testDigits (signedDigits :: [Int])
-      it "single-digit Integers"
-        $ testDigits (signedDigits :: [Integer])
-
-  let naive :: (Integral a, Show a) => a -> Int
-      naive = length . show . abs
-
-      testArbitrary :: (Integral a, Show a) => a -> Property
-      testArbitrary x = numDigits x === naive x
-   in do
-      it "arbitrary-length Ints"
-        $ forAll uniformLengthIntGen testArbitrary
-      it "arbitrary-length Integers"
-        $ forAll uniformLengthIntegerGen testArbitrary
-
-sumDigitsSpec :: Spec
-sumDigitsSpec = do
-  let testDigits :: (Integral a) => [a] -> Expectation
-      testDigits ds = forM_ ds $ \x -> sumDigits x `shouldBe` fromIntegral (abs x)
-   in do
-      it "single-digit Ints"
-        $ testDigits (signedDigits :: [Int])
-      it "single-digit Integers"
-        $ testDigits (signedDigits :: [Integer])
-
-  let naive :: (Integral a, Show a) => a -> Int
-      naive = sum . map (read . (:[])) . show . abs
-
-      testArbitrary :: (Integral a, Show a) => a -> Property
-      testArbitrary x = sumDigits x === naive x
-   in do
-      it "arbitrary-length Ints"
-        $ forAll uniformLengthIntGen testArbitrary
-      it "arbitrary-length Integers"
-        $ forAll uniformLengthIntegerGen testArbitrary
 
 toDigitsSpec :: Spec
 toDigitsSpec = do

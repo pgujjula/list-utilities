@@ -22,6 +22,7 @@ dependencies:
 
 ghc-options:
 - -Wall
+- -Wmissing-export-lists
 - -fwarn-tabs
 
 library:

@@ -45,4 +45,4 @@ toDigits = map (\x -> ord x - ordZero) . show . toInteger
     42
 -}
 fromDigits :: (Integral a) => [Int] -> a
-fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0:)
+fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)

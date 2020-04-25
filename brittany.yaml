@@ -36,7 +36,7 @@ conf_layout:
   lconfig_alignmentLimit: 30
   lconfig_allowHangingQuasiQuotes: true
   lconfig_indentListSpecial: true
-  lconfig_indentAmount: 2
+  lconfig_indentAmount: 4
   lconfig_alignmentBreakOnMultiline: true
   lconfig_experimentalSemicolonNewlines: false
   lconfig_cols: 80

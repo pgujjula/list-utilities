@@ -11,17 +11,17 @@ module Data.List.Transform
     ( takeEvery
     , takeUntil
     , dropUntil
-  
+
     , group
     , groupBy
     , groupAdj
     , groupAdjBy
-  
+
     , deleteDups
     , deleteDupsBy
     , deleteAdjDups
     , deleteAdjDupsBy
-  
+
     , rotate
     ) where
 
@@ -29,7 +29,6 @@ import Control.Monad (guard)
 import Data.List     (sort, sortBy, uncons)
 import Data.Maybe    (fromMaybe)
 
--- TODO: Consider moving 3 functions below to Data.List.Filter
 {-| @takeEvery n xs@ is a list of every nth element of xs
 
     __Precondition:__ @n@ must be positive.
@@ -42,8 +41,8 @@ import Data.Maybe    (fromMaybe)
 takeEvery :: Int -> [a] -> [a]
 takeEvery n xs =
     case drop (n - 1) xs of
-        []     -> []
-        (y:ys) -> y : takeEvery n ys
+        []       -> []
+        (y : ys) -> y : takeEvery n ys
 
 {-| Take a list until a predicate is satisfied, and include the element
     satisfying the predicate. @takeUntil@ is as lazy as possible, which means it
@@ -60,9 +59,9 @@ takeEvery n xs =
     1
 -}
 takeUntil :: (a -> Bool) -> [a] -> [a]
-takeUntil _ []     = []
-takeUntil _ [x]    = [x]
-takeUntil f (x:xs) = x:(if f x then [] else takeUntil f xs)
+takeUntil _ []       = []
+takeUntil _ [x]      = [x]
+takeUntil f (x : xs) = x : (if f x then [] else takeUntil f xs)
 
 {-| Drop a list until a predicate is satisfied, and include the element
     satisfying the predicate.
@@ -71,8 +70,8 @@ takeUntil f (x:xs) = x:(if f x then [] else takeUntil f xs)
     [5, 6, 7, 8, 9, 10]
 -}
 dropUntil :: (a -> Bool) -> [a] -> [a]
-dropUntil _ []     = []
-dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
+dropUntil _ []       = []
+dropUntil f (x:xs) = if f x then x : xs else dropUntil f xs
 
 {-| @group xs@ groups elements of xs that are equal. The groups are returned in
     a sorted order, so a group of a smaller element appears before a group of a
@@ -109,7 +108,7 @@ groupAdj = groupAdjBy (==)
 groupAdjBy :: (a -> a -> Bool) -> [a] -> [[a]]
 groupAdjBy eq = foldr f []
   where
-    f x yss = (x:zs):zss
+    f x yss = (x : zs) : zss
       where
         (zs, zss) = fromMaybe ([], yss) $ do
             (ys, yss') <- uncons yss
@@ -129,7 +128,7 @@ deleteAdjDups = deleteAdjDupsBy (==)
 
 deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
-deleteAdjDupsBy eq xs@(x:_) =
+deleteAdjDupsBy eq xs@(x : _) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
 
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is
@@ -152,9 +151,8 @@ rotate _ [] = []
 rotate n xs = zs ++ ys
   where
     (ys, zs) = splitAt nModLength xs
-    nModLength
-        | n < 0     = n `mod` length xs
-        | otherwise = n `rem` lengthTo n xs
+    nModLength | n < 0     = n `mod` length xs
+               | otherwise = n `rem` lengthTo n xs
 
     -- The length of an list, up to a maximum mx. The length of any list
     -- with length longer than m is reported as mx + 1.

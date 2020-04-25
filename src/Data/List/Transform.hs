@@ -115,7 +115,6 @@ groupAdjBy eq = foldr f []
           guard (x `eq` head ys)
           return (ys, yss')
 
--- TODO: Implement.
 deleteDups :: (Ord a) => [a] -> [a]
 deleteDups = deleteAdjDups . sort
 

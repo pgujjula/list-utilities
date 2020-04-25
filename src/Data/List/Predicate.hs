@@ -91,7 +91,7 @@ sorted = sortedBy compare
 sortedBy :: (a -> a -> Ordering) -> [a] -> Bool
 sortedBy _ [] = True
 sortedBy _ [_] = True
-sortedBy cmp xs = and $ zipWith (\a b -> cmp a b /= GT) xs (tail xs)
+sortedBy cmp xs = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 
 allUnique :: (Ord a) => [a] -> Bool
 allUnique = allAdjUnique . sort
@@ -147,11 +147,12 @@ palindrome xs =
   let (rev, len) = reverseLength xs
    in and $ take (len `div` 2) $ zipWith (==) xs rev
 
+-- get the reverse and the length of a list in one pass
 reverseLength :: [a] -> ([a], Int)
 reverseLength = reverseLengthWith [] 0
-  
-reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
-reverseLengthWith ys n [] = (ys, n)
-reverseLengthWith ys n (x:xs) =
-  let n' = n + 1
-  in seq n' (reverseLengthWith (x:ys) n' xs)
+  where -- accumulate the reverse and the length
+        reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
+        reverseLengthWith ys n [] = (ys, n)
+        reverseLengthWith ys n (x:xs) =
+          let n' = n + 1
+          in seq n' (reverseLengthWith (x:ys) n' xs)

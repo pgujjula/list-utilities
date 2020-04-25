@@ -30,11 +30,11 @@ module Data.List.Ordered.Transform
 
 import Data.Reflection
 import Data.Proxy (Proxy(Proxy))
-import Data.PQueue.Prio.Min (MinPQueue)
+import Data.PQueue.Prio.Min (MinPQueue, minViewWithKey)
 import qualified Data.PQueue.Prio.Min as PQueue
 
-import qualified Data.List as List (null)
-import Data.List as List (sort)
+import           Data.List.NonEmpty ( NonEmpty( (:|) ) , nonEmpty)
+import Data.Maybe (catMaybes)
 
 {-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
     
@@ -68,8 +68,8 @@ diff = diffBy compare
 
 {-| Like @diff@ with a custom comparison function. -}
 diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-diffBy cmp [] _ = []
-diffBy cmp xs [] = xs
+diffBy _ [] _ = []
+diffBy _ xs [] = xs
 diffBy cmp (x:xs) (y:ys) =
   case cmp x y of
     LT -> x:(diffBy cmp xs (y:ys))
@@ -90,8 +90,8 @@ union = unionBy compare
     of matching elements.
  -}
 unionBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-unionBy cmp [] xs = xs
-unionBy cmp xs [] = xs
+unionBy _ [] xs = xs
+unionBy _ xs [] = xs
 unionBy cmp (x:xs) (y:ys) =
   case cmp x y of
     LT -> x:(unionBy cmp xs (y:ys))
@@ -110,15 +110,62 @@ intersect = intersectBy compare
     the "representative" of a matching pair in case of ties.
 -}
 intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-intersectBy cmp [] _ = []
-intersectBy cmp _ [] = []
+intersectBy _ [] _ = []
+intersectBy _ _ [] = []
 intersectBy cmp (x:xs) (y:ys) =
   case cmp x y of
     LT -> intersectBy cmp xs (y:ys)
     EQ -> x:(intersectBy cmp xs ys)
     GT -> intersectBy cmp (x:xs) ys
 
--- TODO: Reconsider this implementation
+-- mergeMany algorithm
+-- ===================
+-- This function uses a priority queue to generate elements in the right order. Consider a list of lists:
+--   [[1, 2, 3..], [2, 4, 6..], [3, 6, 9..], ..]
+-- It can be represented in the following tree structure:
+--   1 - 2 - 3 - ...
+--    \
+--     2 - 4 - 6 - ...
+--      \
+--       3 - 6 - 9 - ... 
+--        \
+--         ...
+-- We denote a value along with its children as a Segment. There are two kinds of Segments: Trees and Branches,
+-- and every Segment has a root node, and maybe some Segments as children. For example, in the structure above,
+-- the 1 is rooting a Tree, while the 2 on its right is rooting a Branch. The 2 below is rooting another Tree.
+--
+-- It's clear a Tree has at most one Tree and one Branch as children, while a Branch has at most another Branch
+-- as a child.
+--
+-- To generate all the values in the structure in sorted order, we maintain a priority queue of all unprocessed
+-- Segments, prioritied by their root node. The queue is initialized with a single Tree, representing the entire
+-- structure. To generate an element, we pop the minimum Segment, yield the root node, and reinsert the children. 
+-- If the queue becomes empty, we have yielded the entire list, so we stop.
+
+data Segment a = Branch (NonEmpty a)
+               | Tree (NonEmpty (NonEmpty a))
+  deriving (Show)
+
+getRoot :: Segment a -> a
+getRoot (Branch (x :| _)) = x
+getRoot (Tree ((x :| _) :| _)) = x
+
+children :: Segment a -> [Segment a]
+children (Branch (_ :| xs))        =
+  catMaybes [Branch <$> nonEmpty xs]
+children (Tree ((_ :| xs) :| xss)) =
+  catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
+
+generate :: (Ord a) => MinPQueue a (Segment a) -> [a]
+generate queue =
+  case minViewWithKey queue of
+    Nothing -> []
+    Just ((root, segment), queue') -> do
+      let queue'' = foldr (\child -> PQueue.insert (getRoot child) child)
+                          queue'
+                          (children segment)
+       in root:(generate queue'')
+
 {-| Merge a list of lists. Works with infinite lists of infinite lists.
 
     __Preconditions:__ Each list must be sorted, and the list of lists must be sorted by first element.
@@ -128,40 +175,10 @@ intersectBy cmp (x:xs) (y:ys) =
 -}
 mergeMany :: (Ord a) => [[a]] -> [a]
 mergeMany xss = 
-  if List.null xss'
-  then []
-  else let n = Head (filter (not . List.null) xss')
-        in generate (PQueue.singleton (root n) n)
-
-   where
-     xss' = filter (not . List.null) xss
-
-     generate :: (Ord a) => MinPQueue a (Node a) -> [a]
-     generate pq =
-       case PQueue.minViewWithKey pq of
-         Nothing -> []
-         Just ((x, node), pq') -> x:(generate pq'')
-           where pq'' = foldr (uncurry PQueue.insert) pq' (children node)
-
-
-     null :: Node a -> Bool
-     null (Head xss) = List.null xss
-     null (Tail xs)   = List.null xs
-
-     root :: Node a -> a
-     root (Head xss) = head (head xss)
-     root (Tail xs) = head xs
-
-     children :: Node a -> [(a, Node a)]
-     children node =
-        map (\x -> (root x, x))
-      $ filter (not . null)
-      $ case node of
-          (Tail (x:xs))        -> [Tail xs]
-          (Head ((x:xs):xss)) -> [Tail xs, Head xss]
-
-data Node a = Head [[a]] | Tail [a]
-  deriving (Show, Ord, Eq)
+  case nonEmpty $ catMaybes $ map nonEmpty xss of
+    Nothing -> []
+    Just nxss -> let tree = Tree nxss
+                  in generate $ PQueue.singleton (getRoot tree) tree
 
 data ReflectedOrd s a = ReflectOrd a
 
@@ -174,11 +191,6 @@ unreflectOrd (ReflectOrd a) = a
 data ReifiedOrd a = ReifiedOrd {
   reifiedEq :: a -> a -> Bool,
   reifiedCompare :: a -> a -> Ordering }
-
-sortBy :: (a -> a -> Ordering) -> [a] -> [a]
-sortBy ord l =
-  reify (fromCompare ord) $ \ p ->
-    map unreflectOrd . sort . map (reflectOrd p) $ l
 
 -- | Creates a `ReifiedOrd` with a comparison function. The equality function
 --   is deduced from the comparison.

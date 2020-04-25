@@ -22,18 +22,14 @@ module Data.List.Ordered.Transform
   , unionBy
 
   , mergeMany
-  , mergeManyBy
-
   , applyMerge
-  , applyMergeBy
   ) where
 
-import Data.Reflection
-import Data.Proxy (Proxy(Proxy))
 import Data.PQueue.Prio.Min (MinPQueue, minViewWithKey)
 import qualified Data.PQueue.Prio.Min as PQueue
 
 import           Data.List.NonEmpty ( NonEmpty( (:|) ) , nonEmpty)
+import Data.List (foldl')
 import Data.Maybe (catMaybes)
 
 {-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
@@ -156,16 +152,6 @@ children (Branch (_ :| xs))        =
 children (Tree ((_ :| xs) :| xss)) =
   catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
 
-generate :: (Ord a) => MinPQueue a (Segment a) -> [a]
-generate queue =
-  case minViewWithKey queue of
-    Nothing -> []
-    Just ((root, segment), queue') -> do
-      let queue'' = foldr (\child -> PQueue.insert (getRoot child) child)
-                          queue'
-                          (children segment)
-       in root:(generate queue'')
-
 {-| Merge a list of lists. Works with infinite lists of infinite lists.
 
     __Preconditions:__ Each list must be sorted, and the list of lists must be sorted by first element.
@@ -173,44 +159,23 @@ generate queue =
     >>> take 10 $ mergeMany $ map (\x -> [x..]) [1..]
     [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
 -}
-mergeMany :: (Ord a) => [[a]] -> [a]
+mergeMany :: forall a. (Ord a) => [[a]] -> [a]
 mergeMany xss = 
   case nonEmpty $ catMaybes $ map nonEmpty xss of
     Nothing -> []
     Just nxss -> let tree = Tree nxss
                   in generate $ PQueue.singleton (getRoot tree) tree
 
-data ReflectedOrd s a = ReflectOrd a
+  where generate :: MinPQueue a (Segment a) -> [a]
+        generate queue =
+          case minViewWithKey queue of
+            Nothing -> []
+            Just ((root, segment), queue') ->
+              let queue'' = foldl' insertSegment queue' (children segment)
+               in root:(generate queue'')
 
-reflectOrd :: Proxy s -> a -> ReflectedOrd s a
-reflectOrd _ a = ReflectOrd a
-
-unreflectOrd :: ReflectedOrd s a -> a
-unreflectOrd (ReflectOrd a) = a
-
-data ReifiedOrd a = ReifiedOrd {
-  reifiedEq :: a -> a -> Bool,
-  reifiedCompare :: a -> a -> Ordering }
-
--- | Creates a `ReifiedOrd` with a comparison function. The equality function
---   is deduced from the comparison.
-fromCompare :: (a -> a -> Ordering) -> ReifiedOrd a
-fromCompare ord = ReifiedOrd {
-  reifiedEq = \x y -> ord x y == EQ,
-  reifiedCompare = ord }
-
-instance Reifies s (ReifiedOrd a) => Eq (ReflectedOrd s a) where
-  (==) (ReflectOrd x) (ReflectOrd y) =
-    reifiedEq (reflect (Proxy :: Proxy s)) x y
-
-instance Reifies s (ReifiedOrd a) => Ord (ReflectedOrd s a) where
-  compare (ReflectOrd x) (ReflectOrd y) =
-    reifiedCompare (reflect (Proxy :: Proxy s)) x y
-
-mergeManyBy :: (a -> a -> Ordering) -> [[a]] -> [a]
-mergeManyBy ord l =
-  reify (fromCompare ord) $ \p ->
-    map unreflectOrd . mergeMany . map (map (reflectOrd p)) $ l
+        insertSegment :: MinPQueue a (Segment a) -> Segment a -> MinPQueue a (Segment a)
+        insertSegment queue segment = PQueue.insert (getRoot segment) segment queue
 
 -- TODO: Improve this explanation.
 {-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
@@ -223,7 +188,4 @@ mergeManyBy ord l =
      * y1 >= y2 => op x y1 >= op x y2
 -}
 applyMerge :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
-applyMerge = applyMergeBy compare
-
-applyMergeBy :: (c -> c -> Ordering) -> (a -> b -> c) -> [a] -> [b] -> [c]
-applyMergeBy cmp op xs ys = mergeManyBy cmp $ map (\x -> map (op x) ys) xs
+applyMerge op xs ys = mergeMany $ map (\x -> map (op x) ys) xs

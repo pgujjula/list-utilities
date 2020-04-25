@@ -9,7 +9,7 @@ import qualified Test.QuickCheck as QC
 import Data.Functor ((<&>))
 import Debug.Trace (trace)
 
-import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy, intersect, intersectBy, union, unionBy, mergeMany, mergeManyBy, applyMerge, applyMergeBy)
+import Data.List.Ordered.Transform (merge, mergeBy, diff, diffBy, intersect, intersectBy, union, unionBy, mergeMany, applyMerge)
 import Control.Arrow ((>>>))
 import Data.List ((\\))
 import qualified Data.List as List (intersect, union)
@@ -37,10 +37,7 @@ spec = modifyMaxSuccess (const numTests) $ do
        describe "test functions together" togetherSpec
 
        describe "mergeMany" mergeManySpec
-       describe "mergeManyBy" mergeManyBySpec
-
        describe "applyMerge" applyMergeSpec
-       describe "applyMergeBy" applyMergeBySpec
 
 unexp :: Expectation
 unexp = undefined
@@ -288,15 +285,6 @@ mergeManySpec = do
       it "arbitrary infinite lists of infinite lists" $
         forAllShow (productsGen Infinite Infinite) show' qcTest
 
-mergeManyBySpec :: Spec
-mergeManyBySpec = do
-  it "empty list" $
-    mergeManyBy undefined [] `shouldBe` ([] :: [Int])
-  it "list of empty lists" $
-    mergeManyBy undefined (replicate 10 []) `shouldBe` ([] :: [Int])
-  it "finite list of finite lists" $
-    mergeManyBy (comparing Down) (products [3, 2, 1] [3, 2, 1]) `shouldBe` [9, 6, 6, 4, 3, 3, 2, 2, 1]
-
 applyMergeSpec :: Spec
 applyMergeSpec = do
   it "both empty" $
@@ -327,14 +315,3 @@ applyMergeSpec = do
         forAll ((,) <$> (sortedGen2 Infinite) <*> (sortedGen2 Finite)) (qcTest (*))
       it "arbitrary infinite, infinite" $
         forAll (pairOf (sortedGen2 Infinite)) (qcTest (*))
-
-applyMergeBySpec :: Spec
-applyMergeBySpec = do
-  it "both empty" $
-    applyMergeBy undefined undefined [] [] `shouldBe` ([] :: [Int])
-  it "left empty" $
-    applyMergeBy undefined undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
-  it "right empty" $
-    applyMergeBy undefined undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
-  it "both finite" $
-    applyMergeBy (comparing Down) (*) [3, 2, 1] [3, 2, 1] `shouldBe` [9, 6, 6, 4, 3, 3, 2, 2, 1]

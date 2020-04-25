@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-| Module      : Data.List.Ordered.Transform
     Description : Transform ordered lists to other ordered lists.
     Copyright   : (c) Preetham Gujjula, 2020
@@ -25,15 +27,15 @@ module Data.List.Ordered.Transform
   , applyMerge
   ) where
 
-import Data.PQueue.Prio.Min (MinPQueue, minViewWithKey)
+import           Data.List            (foldl')
+import           Data.List.NonEmpty   (NonEmpty ((:|)), nonEmpty)
+import           Data.Maybe           (catMaybes, mapMaybe)
+
+import           Data.PQueue.Prio.Min (MinPQueue, minViewWithKey)
 import qualified Data.PQueue.Prio.Min as PQueue
 
-import           Data.List.NonEmpty ( NonEmpty( (:|) ) , nonEmpty)
-import Data.List (foldl')
-import Data.Maybe (catMaybes)
-
 {-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
-    
+
     >>> merge [2, 4, 6, 8] [1, 3, 5, 7]
     [1, 2, 3, 4, 5, 6, 7]
 -}
@@ -42,7 +44,7 @@ merge = mergeBy compare
 
 {-| Merge two lists with a custom comparison function. The two lists are
     assumed to be ordered by the same function. Left side is preferred on ties.
-    
+
     >>> mergeBy (comparing Down) [8, 6, 4, 2] [7, 5, 3, 1]
     [8, 7, 6, 5, 4, 3, 2, 1]
 -}
@@ -50,8 +52,8 @@ mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 mergeBy _ [] ys = ys
 mergeBy _ xs [] = xs
 mergeBy cmp (x:xs) (y:ys)
-  | cmp y x /= LT = x:(mergeBy cmp xs (y:ys))
-  | otherwise     = y:(mergeBy cmp (x:xs) ys)
+    | cmp y x /= LT = x : mergeBy cmp xs (y:ys)
+    | otherwise     = y : mergeBy cmp (x:xs) ys
 
 {-| Yields all the elements in the first list that are not in the second, with
     multiplicities considered. In other words, this is a diff of multisets.
@@ -67,14 +69,14 @@ diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 diffBy _ [] _ = []
 diffBy _ xs [] = xs
 diffBy cmp (x:xs) (y:ys) =
-  case cmp x y of
-    LT -> x:(diffBy cmp xs (y:ys))
-    EQ -> diffBy cmp xs ys
-    GT -> diffBy cmp (x:xs) ys
+    case cmp x y of
+        LT -> x : diffBy cmp xs (y:ys)
+        EQ -> diffBy cmp xs ys
+        GT -> diffBy cmp (x:xs) ys
 
 {-| Yields all the elements in either list, with
     multiplicities considered. The number of times x is in the output is the
-    max of how many times it is in each list. 
+    max of how many times it is in each list.
 
     >>> union [1, 3, 3, 4, 5] [2, 3, 5, 7]
     [1, 2, 3, 3, 4, 5, 7]
@@ -89,10 +91,10 @@ unionBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 unionBy _ [] xs = xs
 unionBy _ xs [] = xs
 unionBy cmp (x:xs) (y:ys) =
-  case cmp x y of
-    LT -> x:(unionBy cmp xs (y:ys))
-    EQ -> x:(unionBy cmp xs ys)
-    GT -> y:(unionBy cmp (x:xs) ys)
+    case cmp x y of
+        LT -> x : unionBy cmp xs (y:ys)
+        EQ -> x : unionBy cmp xs ys
+        GT -> y : unionBy cmp (x:xs) ys
 
 {-| Yields all the elements in both lists with multiplicities considered.
 
@@ -109,10 +111,10 @@ intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 intersectBy _ [] _ = []
 intersectBy _ _ [] = []
 intersectBy cmp (x:xs) (y:ys) =
-  case cmp x y of
-    LT -> intersectBy cmp xs (y:ys)
-    EQ -> x:(intersectBy cmp xs ys)
-    GT -> intersectBy cmp (x:xs) ys
+    case cmp x y of
+        LT -> intersectBy cmp xs (y:ys)
+        EQ -> x : intersectBy cmp xs ys
+        GT -> intersectBy cmp (x:xs) ys
 
 -- mergeMany algorithm
 -- ===================
@@ -123,7 +125,7 @@ intersectBy cmp (x:xs) (y:ys) =
 --    \
 --     2 - 4 - 6 - ...
 --      \
---       3 - 6 - 9 - ... 
+--       3 - 6 - 9 - ...
 --        \
 --         ...
 -- We denote a value along with its children as a Segment. There are two kinds of Segments: Trees and Branches,
@@ -135,7 +137,7 @@ intersectBy cmp (x:xs) (y:ys) =
 --
 -- To generate all the values in the structure in sorted order, we maintain a priority queue of all unprocessed
 -- Segments, prioritied by their root node. The queue is initialized with a single Tree, representing the entire
--- structure. To generate an element, we pop the minimum Segment, yield the root node, and reinsert the children. 
+-- structure. To generate an element, we pop the minimum Segment, yield the root node, and reinsert the children.
 -- If the queue becomes empty, we have yielded the entire list, so we stop.
 
 data Segment a = Branch (NonEmpty a)
@@ -143,14 +145,14 @@ data Segment a = Branch (NonEmpty a)
   deriving (Show)
 
 getRoot :: Segment a -> a
-getRoot (Branch (x :| _)) = x
+getRoot (Branch (x :| _))      = x
 getRoot (Tree ((x :| _) :| _)) = x
 
 children :: Segment a -> [Segment a]
-children (Branch (_ :| xs))        =
-  catMaybes [Branch <$> nonEmpty xs]
-children (Tree ((_ :| xs) :| xss)) =
-  catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
+children (Branch (_ :| xs))        = catMaybes [ Branch <$> nonEmpty xs]
+children (Tree ((_ :| xs) :| xss)) = catMaybes [ Branch <$> nonEmpty xs
+                                               , Tree   <$> nonEmpty xss
+                                               ]
 
 {-| Merge a list of lists. Works with infinite lists of infinite lists.
 
@@ -160,22 +162,26 @@ children (Tree ((_ :| xs) :| xss)) =
     [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
 -}
 mergeMany :: forall a. (Ord a) => [[a]] -> [a]
-mergeMany xss = 
-  case nonEmpty $ catMaybes $ map nonEmpty xss of
-    Nothing -> []
-    Just nxss -> let tree = Tree nxss
-                  in generate $ PQueue.singleton (getRoot tree) tree
+mergeMany xss =
+    case nonEmpty $ mapMaybe nonEmpty xss of
+        Nothing -> []
+        Just nxss -> generate $ PQueue.singleton (getRoot tree) tree
+          where
+            tree = Tree nxss
 
-  where generate :: MinPQueue a (Segment a) -> [a]
-        generate queue =
-          case minViewWithKey queue of
+  where
+    generate :: MinPQueue a (Segment a) -> [a]
+    generate queue =
+        case minViewWithKey queue of
             Nothing -> []
-            Just ((root, segment), queue') ->
-              let queue'' = foldl' insertSegment queue' (children segment)
-               in root:(generate queue'')
+            Just ((root, segment), queue') -> root : generate queue''
+              where
+                queue'' = foldl' insertSegment queue' (children segment)
 
-        insertSegment :: MinPQueue a (Segment a) -> Segment a -> MinPQueue a (Segment a)
-        insertSegment queue segment = PQueue.insert (getRoot segment) segment queue
+    insertSegment :: MinPQueue a (Segment a)
+                  -> Segment a
+                  -> MinPQueue a (Segment a)
+    insertSegment queue segment = PQueue.insert (getRoot segment) segment queue
 
 -- TODO: Improve this explanation.
 {-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@

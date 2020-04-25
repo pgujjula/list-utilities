@@ -20,6 +20,10 @@ description:         Please see the README on GitHub at <https://github.com/pguj
 dependencies:
 - base >= 4.7 && < 5
 
+ghc-options:
+- -Wall
+- -fwarn-tabs
+
 library:
   source-dirs: src
   exposed-modules:
@@ -50,3 +54,5 @@ executables:
       - QuickCheck
       - random
       - tsil
+    ghc-options:
+    - -Wno-type-defaults

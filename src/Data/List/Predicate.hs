@@ -28,7 +28,7 @@ module Data.List.Predicate
 import Data.List (sort, sortBy)
 
 {-| Whether all the elements in the list are equal.
-  
+
     >>> allEqual [1..]
     False
     >>> allEqual [3, 3, 3, 3]
@@ -44,7 +44,7 @@ allEqual = allEqualBy (==)
       * allEqualBy _|_ [] == True
       * allEqualBy _|_ (_|_:[]) == True
       * allEqualBy _|_ (x1:x2:xs) == undefined
-  
+
     >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 23]
     True
     >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 24]
@@ -55,12 +55,12 @@ allEqual = allEqualBy (==)
     True
 -}
 allEqualBy :: (a -> a -> Bool) -> [a] -> Bool
-allEqualBy _ [] = True
+allEqualBy _ []      = True
 allEqualBy eq (x:xs) = all (eq x) xs
 
 {-| Whether the elements are in sorted order. Laziness semantics:
      * sorted _|_:[] == True
-    
+
     >>> sorted [1, 2, 3, 3]
     True
     >>> sorted [1, 2, 3, 2]
@@ -89,8 +89,8 @@ sorted = sortedBy compare
     True
 -}
 sortedBy :: (a -> a -> Ordering) -> [a] -> Bool
-sortedBy _ [] = True
-sortedBy _ [_] = True
+sortedBy _ []   = True
+sortedBy _ [_]  = True
 sortedBy cmp xs = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 
 allUnique :: (Ord a) => [a] -> Bool
@@ -99,7 +99,8 @@ allUnique = allAdjUnique . sort
 {-| Like @allUnique@, with a custom comparison test. -}
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
 allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
-  where eq a b = cmp a b == EQ
+  where
+    eq a b = cmp a b == EQ
 
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
@@ -117,7 +118,8 @@ allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 -}
 ascSequential :: (Enum a) => [a] -> Bool
 ascSequential xs = and $ zipWith (==) xs' [head xs'..]
-  where xs' = map fromEnum xs
+  where
+    xs' = map fromEnum xs
 
 {-| Whether the list is descending sequentially.
 
@@ -128,8 +130,9 @@ ascSequential xs = and $ zipWith (==) xs' [head xs'..]
 -}
 descSequential :: (Enum a) => [a] -> Bool
 descSequential xs = and $ zipWith (==) xs' [x, x-1..]
-  where xs' = map fromEnum xs
-        x = head xs'
+  where
+    xs' = map fromEnum xs
+    x = head xs'
 
 {-| Whether the input is a palindrome, i.e., the same forwards and backwards.
 
@@ -143,16 +146,17 @@ descSequential xs = and $ zipWith (==) xs' [x, x-1..]
     True
 -}
 palindrome :: (Eq a) => [a] -> Bool
-palindrome xs = 
-  let (rev, len) = reverseLength xs
-   in and $ take (len `div` 2) $ zipWith (==) xs rev
+palindrome xs = and $ take (len `div` 2) $ zipWith (==) xs rev
+  where 
+    (rev, len) = reverseLength xs
 
 -- get the reverse and the length of a list in one pass
 reverseLength :: [a] -> ([a], Int)
 reverseLength = reverseLengthWith [] 0
-  where -- accumulate the reverse and the length
-        reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
-        reverseLengthWith ys n [] = (ys, n)
-        reverseLengthWith ys n (x:xs) =
-          let n' = n + 1
-          in seq n' (reverseLengthWith (x:ys) n' xs)
+  where
+    -- accumulate the reverse and the length
+    reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
+    reverseLengthWith ys n [] = (ys, n)
+    reverseLengthWith ys n (x:xs) =
+        let n' = n + 1
+        in seq n' (reverseLengthWith (x:ys) n' xs)

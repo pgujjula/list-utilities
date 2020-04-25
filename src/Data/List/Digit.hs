@@ -8,17 +8,16 @@
     Lists of digits to numbers, and vice versa.
 -}
 module Data.List.Digit
-  ( fromDigits
-  , toDigits
-  ) where
+    ( fromDigits
+    , toDigits
+    ) where
 
 import Data.Char (chr, ord)
 
 ordZero :: Int
 ordZero = ord '0'
 
-{-|
-    @toDigits n@ is a list of the digits in @n@.
+{-| @toDigits n@ is a list of the digits in @n@.
 
     __Precondition:__ @n@ must be nonnegative, so that @toDigits@ is the
     inverse of @fromDigits@.

@@ -17,120 +17,112 @@ import Data.Ord (comparing, Down(Down))
 
 import Data.List (sort, sortBy)
 
--- TODO: Remove if unnecessary
-numTests :: Int
-numTests = 100
-
 maxListLength :: Int
 maxListLength = 100
 
 spec :: Spec
-spec = modifyMaxSuccess (const numTests) $ do
-       describe "merge" mergeSpec
-       describe "mergeBy" mergeBySpec
-       describe "diff" diffSpec
-       describe "diffBy" diffBySpec
-       describe "intersect" intersectSpec
-       describe "intersectBy" intersectBySpec
-       describe "union" unionSpec 
-       describe "unionBy" unionBySpec
-       describe "test functions together" togetherSpec
+spec = do
+    describe "merge" mergeSpec
+    describe "mergeBy" mergeBySpec
+    describe "diff" diffSpec
+    describe "diffBy" diffBySpec
+    describe "intersect" intersectSpec
+    describe "intersectBy" intersectBySpec
+    describe "union" unionSpec 
+    describe "unionBy" unionBySpec
+    describe "test functions together" togetherSpec
 
-       describe "mergeMany" mergeManySpec
-       describe "applyMerge" applyMergeSpec
-
-unexp :: Expectation
-unexp = undefined
+    describe "mergeMany" mergeManySpec
+    describe "applyMerge" applyMergeSpec
 
 mergeSpec :: Spec
 mergeSpec = do
-  it "both empty" $
-    merge [] [] `shouldBe` ([] :: [Int])
-  it "left empty" $
-    merge [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
-  it "right empty" $
-    merge [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
-  it "arbitrary finite lists" $ do
-    forAll (sortedGen Finite) $ \xs ->
+    it "both empty" $
+        merge [] [] `shouldBe` ([] :: [()])
+    it "left empty" $
+       merge [] [1, 2, 3] `shouldBe` [1, 2, 3]
+    it "right empty" $
+       merge [1, 2, 3] [] `shouldBe` [1, 2, 3]
+    it "arbitrary finite lists" $
+      forAll (sortedGen Finite) $ \xs ->
       forAll (sortedGen Finite) $ \ys -> 
-        merge xs ys === sort (xs ++ ys)
-  it "arbitrary infinite lists" $ do
-    forAllInfinite (pairOf $ sortedGen Infinite) $ \(xs, ys) ->
-        (trunc $ merge xs ys)
-          === (trunc $ sort (trunc xs ++ trunc ys))
+          merge xs ys === sort (xs ++ ys)
+    it "arbitrary infinite lists" $
+        forAllInfinite (pairOf $ sortedGen Infinite) $ \(xs, ys) ->
+            (trunc $ merge xs ys) === (trunc $ sort (trunc xs ++ trunc ys))
 
 diffSpec :: Spec
 diffSpec = do
-  it "both empty" $
-    diff [] [] `shouldBe` ([] :: [Int])
-  it "left empty" $
-    diff [] undefined `shouldBe` ([] :: [Int])
-  it "right empty" $
-    diff [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
-  it "arbitrary finite lists" $
-    forAll (pairOf (sortedGen2 Finite)) $ \(xs, ys) ->
-      (diff xs ys) `shouldBe` (xs \\ ys)
-  -- too hard to construct arbitrary infinite lists test.
-  -- simplest way to determine a prefix of the difference of two infinite lists
-  -- is to construct the diff algorithm itself. So we settle for a hand-made unit test.
-  it "infinite lists" $
-    let xs = [1..]
-        ys = map (^2) [1..]
-        ds = diff xs ys
-        square x = any (\t -> t^2 == x) [1..x]
-     in filter (not . square) xs `shouldStartWith` (take maxListLength $ diff xs ys)
+    it "both empty" $
+        diff [] [] `shouldBe` ([] :: [Int])
+    it "left empty" $
+        diff [] undefined `shouldBe` ([] :: [Int])
+    it "right empty" $
+        diff [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+    it "arbitrary finite lists" $
+        forAll (pairOf (sortedGen2 Finite)) $ \(xs, ys) ->
+        (diff xs ys) `shouldBe` (xs \\ ys)
+    -- too hard to construct arbitrary infinite lists test.
+    -- simplest way to determine a prefix of the difference of two infinite lists
+    -- is to construct the diff algorithm itself. So we settle for a hand-made unit test.
+    it "infinite lists" $
+      let xs = [1..]
+          ys = map (^2) [1..]
+          ds = diff xs ys
+          square x = any (\t -> t^2 == x) [1..x]
+       in filter (not . square) xs `shouldStartWith` (take maxListLength $ diff xs ys)
 
 diffBySpec :: Spec
 diffBySpec = do
-  it "both empty" $
-    diffBy undefined [] [] `shouldBe` ([] :: [Int])
-  it "left empty" $
-    diffBy undefined [] undefined `shouldBe` ([] :: [Int])
-  it "right empty" $
-    diffBy undefined [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
-  -- The functionality testing is done in diffSpec. This is just a sanity check
-  it "finite list" $
-    diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
+    it "both empty" $
+        diffBy undefined [] [] `shouldBe` ([] :: [()])
+    it "left empty" $
+        diffBy undefined [] undefined `shouldBe` ([] :: [()])
+    it "right empty" $
+        diffBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
+    -- The functionality testing is done in diffSpec. This is just a sanity check
+    it "finite list" $
+        diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
 
 mergeBySpec :: Spec
 mergeBySpec = do
-  it "both empty" $
-    mergeBy undefined [] [] `shouldBe` ([] :: [Int])
-  it "left empty" $
-    mergeBy undefined [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
-  it "right empty" $
-    mergeBy undefined [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
-  it "arbitrary finite lists" $ do
-    let gen = map negate <$> sortedGen Finite
-    forAll gen $ \xs ->
-      forAll gen $ \ys -> 
-        mergeBy (comparing Down) xs ys
-          === sortBy (comparing Down) (xs ++ ys)
-  it "finite lists with lots of repeats" $ do
-    let gen = map negate <$> repeatedSortedGen Finite
-    forAll gen $ \xs ->
-      forAll gen $ \ys -> 
-        mergeBy (comparing Down) xs ys
-          === sortBy (comparing Down) (xs ++ ys)
-  it "arbitrary infinite lists" $ do
-    let gen = map negate <$> sortedGen Infinite
-    forAllInfinite (pairOf gen)  $ \(xs, ys) ->
-      let test = trunc $ mergeBy (comparing Down) xs ys
-          expected = trunc $ sortBy (comparing Down) (trunc xs ++ trunc ys)
-       in test === expected
-  it "infinite lists with lots of repeats" $ do
-    let gen = map negate <$> repeatedSortedGen Infinite
-    forAllInfinite (pairOf gen)  $ \(xs, ys) ->
-      let test = trunc $ mergeBy (comparing Down) xs ys
-          expected = trunc $ sortBy (comparing Down) (trunc xs ++ trunc ys)
-       in test === expected
-  -- TODO: Test for lots of collisions
-  it "left side is preferred on ties" $ do
-    let xs = map ("x",) [1, 3, 4, 4, 5] :: [(String, Int)]
-    let ys = map ("y",) [1, 3, 3, 4, 5]
-    mergeBy (comparing snd) xs ys `shouldBe`
-      [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
-       ("x", 4), ("x", 4), ("y", 4), ("x", 5), ("y", 5)]
+    it "both empty" $
+        mergeBy undefined [] [] `shouldBe` ([] :: [()])
+    it "left empty" $
+        mergeBy undefined [] [1, 2, 3] `shouldBe` [1, 2, 3]
+    it "right empty" $
+        mergeBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
+
+    let cmp = comparing Down
+    it "arbitrary finite lists" $
+        let gen = reverse <$> sortedGen Finite
+         in forAll gen $ \xs ->
+            forAll gen $ \ys -> 
+                mergeBy cmp xs ys === sortBy cmp (xs ++ ys)
+    it "finite lists with lots of repeats" $
+        let gen = map negate <$> repeatedSortedGen Finite
+         in forAll gen $ \xs ->
+            forAll gen $ \ys -> 
+                mergeBy cmp xs ys === sortBy cmp (xs ++ ys)
+    it "arbitrary infinite lists" $ do
+      let gen = map negate <$> sortedGen Infinite
+      forAllInfinite (pairOf gen)  $ \(xs, ys) ->
+        let test = trunc $ mergeBy cmp xs ys
+            expected = trunc $ sortBy cmp (trunc xs ++ trunc ys)
+         in test === expected
+    it "infinite lists with lots of repeats" $ do
+      let gen = map negate <$> repeatedSortedGen Infinite
+      forAllInfinite (pairOf gen)  $ \(xs, ys) ->
+        let test = trunc $ mergeBy (comparing Down) xs ys
+            expected = trunc $ sortBy (comparing Down) (trunc xs ++ trunc ys)
+         in test === expected
+    -- TODO: Test for lots of collisions
+    it "left side is preferred on ties" $ do
+      let xs = map ("x",) [1, 3, 4, 4, 5] :: [(String, Int)]
+      let ys = map ("y",) [1, 3, 3, 4, 5]
+      mergeBy (comparing snd) xs ys `shouldBe`
+        [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
+         ("x", 4), ("x", 4), ("y", 4), ("x", 5), ("y", 5)]
 
 intersectSpec :: Spec
 intersectSpec = do

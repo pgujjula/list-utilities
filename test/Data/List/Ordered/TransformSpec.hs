@@ -44,9 +44,9 @@ mergeSpec = do
     it "right empty" $
        merge [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "arbitrary finite lists" $
-      forAll (sortedGen Finite) $ \xs ->
-      forAll (sortedGen Finite) $ \ys -> 
-          merge xs ys === sort (xs ++ ys)
+       forAll (sortedGen Finite) $ \xs ->
+       forAll (sortedGen Finite) $ \ys -> 
+           merge xs ys === sort (xs ++ ys)
     it "arbitrary infinite lists" $
         forAllInfinite (pairOf $ sortedGen Infinite) $ \(xs, ys) ->
             (trunc $ merge xs ys) === (trunc $ sort (trunc xs ++ trunc ys))
@@ -66,11 +66,11 @@ diffSpec = do
     -- simplest way to determine a prefix of the difference of two infinite lists
     -- is to construct the diff algorithm itself. So we settle for a hand-made unit test.
     it "infinite lists" $
-      let xs = [1..]
-          ys = map (^2) [1..]
-          ds = diff xs ys
-          square x = any (\t -> t^2 == x) [1..x]
-       in filter (not . square) xs `shouldStartWith` (take maxListLength $ diff xs ys)
+        let xs = [1..]
+            ys = map (^2) [1..]
+            ds = diff xs ys
+            square x = any (\t -> t^2 == x) [1..x]
+         in filter (not . square) xs `shouldStartWith` (take maxListLength $ diff xs ys)
 
 diffBySpec :: Spec
 diffBySpec = do

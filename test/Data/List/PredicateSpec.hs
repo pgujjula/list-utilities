@@ -1,4 +1,4 @@
-module Data.List.PredicateSpec where
+module Data.List.PredicateSpec (hspec) where
 
 import Data.Function (on)
 import Data.Ord (Down(Down), comparing)

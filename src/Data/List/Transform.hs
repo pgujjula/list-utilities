@@ -12,6 +12,8 @@ module Data.List.Transform
     , takeUntil
     , dropUntil
 
+    , rotate
+
     , group
     , groupBy
     , groupAdj
@@ -21,8 +23,6 @@ module Data.List.Transform
     , deleteDupsBy
     , deleteAdjDups
     , deleteAdjDupsBy
-
-    , rotate
     ) where
 
 import Control.Monad (guard)
@@ -70,8 +70,8 @@ takeUntil f (x : xs) = x : (if f x then [] else takeUntil f xs)
     [5, 6, 7, 8, 9, 10]
 -}
 dropUntil :: (a -> Bool) -> [a] -> [a]
-dropUntil _ []       = []
-dropUntil f (x:xs) = if f x then x : xs else dropUntil f xs
+dropUntil _ []     = []
+dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 
 {-| @group xs@ groups elements of xs that are equal. The groups are returned in
     a sorted order, so a group of a smaller element appears before a group of a

@@ -1,23 +1,65 @@
-module Data.List.Gen (Finiteness(..), sortedGen, repeatedSortedGen, forAllInfinite) where
+{- Utilities for generating lists -}
+module Data.List.Gen
+    ( Finiteness(Finite, Infinite)
+    , Repeatedness(Repeated, Standard)
+    , Sortedness(Sorted, Reversed)
+    , SortedConfig(SortedConfig, finiteness, repeatedness, sortedness)
+    , defaultConfig
+    , sortedGen
+    , sortedGenWith
+    , pairOf
+    , forAllInfinite
+    ) where
 
-import Test.QuickCheck (Gen, listOf, arbitrary, infiniteList, choose, infiniteListOf, forAllShow, Property, Testable)
+import Test.QuickCheck (Gen, Property, Testable, choose, forAllShow,
+                        infiniteListOf, listOf1, oneof)
 
 data Finiteness = Finite | Infinite
+    deriving (Show, Enum, Eq, Ord)
 
-sortedGen :: Finiteness -> Gen [Int]
-sortedGen finiteness =
-  let unsorted = case finiteness of
-                   Finite -> listOf (choose (1, 10000))
-                   Infinite -> infiniteListOf (choose (1, 10000))
-   in scanl1 (+) <$> unsorted
+data Repeatedness = Repeated -- Elements are repeated a lot
+                  | Standard -- Regular amount of repeatedness, some repeats may
+                             --   be present.
+                  | Unique   -- All elements are unique.
+    deriving (Show, Enum, Eq, Ord)
 
-repeatedSortedGen :: Finiteness -> Gen [Int]
-repeatedSortedGen f = do
-  xs <- sortedGen f
-  rs <- infiniteListOf (choose (1, 3))
-  return $ concat $ zipWith replicate rs xs
+data Sortedness = Sorted | Reversed
+    deriving (Show, Enum, Eq, Ord)
 
-forAllInfinite :: (Show a, Testable prop) => Int -> Gen ([a], [a]) -> (([a], [a]) -> prop) -> Property
-forAllInfinite maxListLen gen = forAllShow gen show'
-  where show' (xs, ys) = show (trunc xs, trunc ys)
-        trunc = take maxListLen
+data SortedConfig = SortedConfig { finiteness   :: Finiteness
+                                 , repeatedness :: Repeatedness
+                                 , sortedness   :: Sortedness
+                                 }
+    deriving (Show, Eq, Ord)
+
+defaultConfig :: SortedConfig
+defaultConfig = SortedConfig { finiteness   = Finite
+                             , repeatedness = Standard
+                             , sortedness   = Sorted
+                             }
+
+sortedGen :: Gen [Integer]
+sortedGen = sortedGenWith defaultConfig
+
+sortedGenWith :: SortedConfig -> Gen [Integer]
+sortedGenWith conf = do
+    let diffGen = case repeatedness conf of
+                      Standard -> choose (0, 7)
+                      Unique   -> choose (1, 7)
+                      Repeated -> oneof [return 0, return 0, choose (1, 7)]
+    diffs <- case finiteness conf of
+                 Finite   -> listOf1 diffGen
+                 Infinite -> infiniteListOf diffGen
+    let sums = scanl1 (+) diffs
+    let orderedSums = case sortedness conf of
+                          Sorted   -> sums
+                          Reversed -> map negate sums
+    return orderedSums
+
+pairOf :: Gen a -> Gen (a, a)
+pairOf gen = (,) <$> gen <*> gen
+
+forAllInfinite :: (Show a, Testable prop) => Gen a -> (a -> prop) -> Property
+forAllInfinite gen = forAllShow gen (const message)
+  where
+    message = "<cannot display infinite list(s), inspect through debugging>"

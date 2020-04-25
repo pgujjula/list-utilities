@@ -1,14 +1,14 @@
-module Data.List.PredicateSpec (hspec) where
+module Data.List.PredicateSpec (spec) where
 
-import Data.Function (on)
-import Data.Ord (Down(Down), comparing)
+import Data.Function       (on)
+import Data.Ord            (Down (Down), comparing)
 
-import Test.Hspec            (Spec, describe, it, shouldBe)
-import Test.QuickCheck (Gen, arbitrary, oneof, listOf, suchThat, forAll)
+import Test.Hspec          (Spec, describe, it, shouldBe)
+import Test.QuickCheck     (Gen, arbitrary, forAll, listOf, oneof, suchThat)
 
-import Data.List.Predicate   (allEqual, allEqualBy, sorted, sortedBy, allAdjUnique,
-                              allAdjUniqueBy, allUniqueBy, allUnique, palindrome,
-                              ascSequential, descSequential)
+import Data.List.Predicate (allAdjUnique, allAdjUniqueBy, allEqual, allEqualBy,
+                            allUnique, allUniqueBy, ascSequential,
+                            descSequential, palindrome, sorted, sortedBy)
 
 spec :: Spec
 spec = do
@@ -16,8 +16,8 @@ spec = do
     describe "allEqualBy" allEqualBySpec
     describe "sorted" sortedSpec
     describe "sortedBy" sortedBySpec
-    describe "allUnique" allAdjUniqueSpec
-    describe "allUniqueBy" allAdjUniqueBySpec
+    describe "allUnique" allUniqueSpec
+    describe "allUniqueBy" allUniqueBySpec
     describe "allAdjUnique" allAdjUniqueSpec
     describe "allAdjUniqueBy" allAdjUniqueBySpec
     describe "ascSequentialSpec" ascSequentialSpec
@@ -26,22 +26,22 @@ spec = do
 
 allEqualSpec :: Spec
 allEqualSpec = do
-    it "empty list" $ 
+    it "empty list" $
         allEqual ([] :: [()]) `shouldBe` True
     it "singleton" $
         allEqual [3] `shouldBe` True
     it "repeated element, finite list" $
         allEqual (replicate 10 3) `shouldBe` True
     it "single unequal element, finite list" $ do
-        let xs = (replicate 10 3) ++ [4] ++ (replicate 10 3)
+        let xs = replicate 10 3 ++ [4] ++ replicate 10 3
         allEqual xs `shouldBe` False
     it "single unequal element, infinite list" $ do
-        let xs = (replicate 10 3) ++ [4] ++ (repeat 3)
+        let xs = replicate 10 3 ++ [4] ++ repeat 3
         allEqual xs `shouldBe` False
 
 allEqualBySpec :: Spec
 allEqualBySpec = do
-    it "empty list" $ 
+    it "empty list" $
         allEqualBy undefined ([] :: [()]) `shouldBe` True
     it "singleton" $
         allEqualBy undefined [3] `shouldBe` True
@@ -77,24 +77,23 @@ sortedBySpec :: Spec
 sortedBySpec = do
     let cmp :: (Ord a) => a -> a -> Ordering
         cmp = comparing Down
-     in do
-        it "empty" $
-            sortedBy undefined ([] :: [()]) `shouldBe` True
-        it "singleton" $
-            sortedBy undefined [3] `shouldBe` True
-        it "finite list, sorted" $
-            sortedBy cmp [10, 8..2] `shouldBe` True
-        it "finite list, not sorted" $
-            sortedBy cmp ([10, 8..2] ++ [3]) `shouldBe` False
-        it "finite list, sorted, some repeats" $
-            sortedBy cmp [9, 7, 4, 4, 3, 1, 1, 1] `shouldBe` True
-        it "finite list, not sorted, some repeats" $
-            sortedBy cmp [9, 8, 8, 7, 4, 5, 3, 3, 1] `shouldBe` False
-        it "infinite list, not sorted" $
-            sorted ([10, 8..2] ++ [3] ++ [1, 0..]) `shouldBe` False
-        it "infinite list, not sorted, some repeats" $
-            sortedBy cmp ([9, 8, 8, 7, 4, 5, 3, 3, 1] ++ [0, -1..])
-                `shouldBe` False
+    it "empty" $
+        sortedBy undefined ([] :: [()]) `shouldBe` True
+    it "singleton" $
+        sortedBy undefined [3] `shouldBe` True
+    it "finite list, sorted" $
+        sortedBy cmp [10, 8..2] `shouldBe` True
+    it "finite list, not sorted" $
+        sortedBy cmp ([10, 8..2] ++ [3]) `shouldBe` False
+    it "finite list, sorted, some repeats" $
+        sortedBy cmp [9, 7, 4, 4, 3, 1, 1, 1] `shouldBe` True
+    it "finite list, not sorted, some repeats" $
+        sortedBy cmp [9, 8, 8, 7, 4, 5, 3, 3, 1] `shouldBe` False
+    it "infinite list, not sorted" $
+        sorted ([10, 8..2] ++ [3] ++ [1, 0..]) `shouldBe` False
+    it "infinite list, not sorted, some repeats" $
+        sortedBy cmp ([9, 8, 8, 7, 4, 5, 3, 3, 1] ++ [0, -1..])
+            `shouldBe` False
 
 allUniqueSpec :: Spec
 allUniqueSpec = do
@@ -111,7 +110,7 @@ allUniqueSpec = do
 
 allUniqueBySpec :: Spec
 allUniqueBySpec = do
-    it "empty list" $ 
+    it "empty list" $
         allUniqueBy undefined [] `shouldBe` True
     it "singleton list" $
         allUniqueBy undefined [1] `shouldBe` True
@@ -124,46 +123,46 @@ allUniqueBySpec = do
 
 allAdjUniqueSpec :: Spec
 allAdjUniqueSpec = do
-    it "empty list" $ 
+    it "empty list" $
         allAdjUnique ([] :: [()]) `shouldBe` True
-    it "singleton list" $ 
+    it "singleton list" $
         allAdjUnique [1] `shouldBe` True
-    it "finite list, no repeats" $ 
+    it "finite list, no repeats" $
         allAdjUnique [1, 5, 2, 8, 2, 5] `shouldBe` True
-    it "finite list, one repeat" $ 
+    it "finite list, one repeat" $
         allAdjUnique [1, 5, 5, 8, 2, 5] `shouldBe` False
-    it "finite list, two repeats" $ 
+    it "finite list, two repeats" $
         allAdjUnique [1, 5, 5, 8, 2, 2, 5] `shouldBe` False
-    it "infinite list, one repeat" $ 
+    it "infinite list, one repeat" $
        allAdjUnique ([1, 2, 3, 3] ++ [4..]) `shouldBe` False
-    it "infinite list, two repeat" $ 
+    it "infinite list, two repeat" $
         allAdjUnique ([1, 2, 3, 3] ++ [4, 5, 6, 6] ++ [0, -1..])
             `shouldBe` False
 
 allAdjUniqueBySpec :: Spec
 allAdjUniqueBySpec = do
-    it "empty list" $ 
+    it "empty list" $
         allAdjUniqueBy undefined ([] :: [()]) `shouldBe` True
-    it "singleton list" $ 
+    it "singleton list" $
         allAdjUniqueBy undefined [1] `shouldBe` True
 
     let eq = (==) `on` (`rem` 10)
-    it "finite list, no repeats" $ 
+    it "finite list, no repeats" $
         allAdjUniqueBy eq [1, 5, 19, 8, 2, 5] `shouldBe` True
-    it "finite list, one repeat" $ 
+    it "finite list, one repeat" $
         allAdjUniqueBy eq [1, 5, 18, 8, 2, 5] `shouldBe` False
 
 palindromeSpec :: Spec
 palindromeSpec = do
-    it "empty list" $ 
+    it "empty list" $
         palindrome "" `shouldBe` True
-    it "singleton list" $ 
+    it "singleton list" $
         palindrome "a" `shouldBe` True
-    it "small palindrome, odd length" $ 
+    it "small palindrome, odd length" $
         palindrome "rotor" `shouldBe` True
     it "small not palindrome, odd length" $
         palindrome "rover" `shouldBe` False
-    it "small palindrome, even length" $ 
+    it "small palindrome, even length" $
         palindrome "dood" `shouldBe` True
     it "small not palindrome, even length" $
         palindrome "door" `shouldBe` False
@@ -176,7 +175,7 @@ palindromeSpec = do
             xs <- listOf arbitrary
             -- c is either a character or nothing
             c  <- oneof [return "", (:[]) <$> arbitrary]
-            return $ xs ++ c ++ (reverse xs)
+            return $ xs ++ c ++ reverse xs
 
         nonPalindromeGen :: Gen String
         nonPalindromeGen = listOf arbitrary `suchThat` (not . naive) :: Gen String
@@ -188,7 +187,7 @@ palindromeSpec = do
 
 ascSequentialSpec :: Spec
 ascSequentialSpec = do
-    it "empty list" $ 
+    it "empty list" $
         ascSequential ([] :: [()]) `shouldBe` True
     it "singleton list" $
         ascSequential [1] `shouldBe` True

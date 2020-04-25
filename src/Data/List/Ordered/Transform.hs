@@ -66,7 +66,7 @@ diff = diffBy compare
 
 {-| Like @diff@ with a custom comparison function. -}
 diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-diffBy _ [] _ = []
+diffBy _ [] _  = []
 diffBy _ xs [] = xs
 diffBy cmp (x:xs) (y:ys) =
     case cmp x y of
@@ -149,10 +149,9 @@ getRoot (Branch (x :| _))      = x
 getRoot (Tree ((x :| _) :| _)) = x
 
 children :: Segment a -> [Segment a]
-children (Branch (_ :| xs))        = catMaybes [ Branch <$> nonEmpty xs]
-children (Tree ((_ :| xs) :| xss)) = catMaybes [ Branch <$> nonEmpty xs
-                                               , Tree   <$> nonEmpty xss
-                                               ]
+children (Branch (_ :| xs)) = catMaybes [Branch <$> nonEmpty xs]
+children (Tree ((_ :| xs) :| xss)) =
+    catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
 
 {-| Merge a list of lists. Works with infinite lists of infinite lists.
 
@@ -164,7 +163,7 @@ children (Tree ((_ :| xs) :| xss)) = catMaybes [ Branch <$> nonEmpty xs
 mergeMany :: forall a. (Ord a) => [[a]] -> [a]
 mergeMany xss =
     case nonEmpty $ mapMaybe nonEmpty xss of
-        Nothing -> []
+        Nothing   -> []
         Just nxss -> generate $ PQueue.singleton (getRoot tree) tree
           where
             tree = Tree nxss

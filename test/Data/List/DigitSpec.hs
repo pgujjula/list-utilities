@@ -1,23 +1,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.List.DigitSpec (spec) where
 
-import Control.Monad         (forM_)
-import Data.Proxy            (Proxy (Proxy))
+import Control.Monad   (forM_)
+import Data.Proxy      (Proxy (Proxy))
 
-import Test.Hspec            (Expectation, Spec, describe, it, shouldBe)
-import Test.Hspec.QuickCheck (modifyMaxSuccess)
-import Test.QuickCheck       (Gen, Property, arbitrary, choose, elements,
-                              forAll, listOf, oneof, sized, suchThat, (===))
+import Test.Hspec      (Expectation, Spec, describe, it, shouldBe)
+import Test.QuickCheck (Gen, Property, arbitrary, elements, forAll, listOf,
+                        suchThat, (===))
 
-import Data.List.Digit       (fromDigits, toDigits)
-
-numTests :: Int
-numTests = 1000
+import Data.List.Digit (fromDigits, toDigits)
 
 spec :: Spec
-spec = modifyMaxSuccess (const numTests) $ do
-       describe "toDigits" toDigitsSpec
-       describe "fromDigits" fromDigitsSpec
+spec = do
+    describe "toDigits" toDigitsSpec
+    describe "fromDigits" fromDigitsSpec
 
 digits :: (Integral a) => [a]
 digits = [0..9]

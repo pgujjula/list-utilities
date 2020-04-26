@@ -17,23 +17,9 @@ import Data.Char (chr, ord)
 ordZero :: Int
 ordZero = ord '0'
 
-{-| @toDigits n@ is a list of the digits in @n@.
+{-| Converts a list of digits to an integer.
 
-    __Precondition:__ @n@ must be nonnegative, so that @toDigits@ is the
-    inverse of @fromDigits@.
-
-    >>> toDigits 2338475
-    [2, 3, 3, 8, 4, 7, 5]
-    >>> toDigits 0
-    [0]
--}
-toDigits :: (Integral a) => a -> [Int]
-toDigits = map (\x -> ord x - ordZero) . show . toInteger
-
-{-|
-    @fromDigits xs@ converts a list of digits @xs@ to an integer.
-
-    __Precondition:__ All elements of @xs@ are in @[0..9]@.
+    __Precondition:__ All elements of the input are in @[0..9]@.
 
     >>> fromDigits [1, 7, 2, 9]
     1729
@@ -46,3 +32,16 @@ toDigits = map (\x -> ord x - ordZero) . show . toInteger
 -}
 fromDigits :: (Integral a) => [Int] -> a
 fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)
+
+{-| Generates the list of digits in the input.
+
+    __Precondition:__ The input must be nonnegative, so that @toDigits@ is the
+    inverse of @fromDigits@.
+
+    >>> toDigits 2338475
+    [2, 3, 3, 8, 4, 7, 5]
+    >>> toDigits 0
+    [0]
+-}
+toDigits :: (Integral a) => a -> [Int]
+toDigits = map (\x -> ord x - ordZero) . show . toInteger

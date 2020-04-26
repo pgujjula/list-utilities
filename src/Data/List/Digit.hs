@@ -17,7 +17,7 @@ import Data.Char (chr, ord)
 ordZero :: Int
 ordZero = ord '0'
 
-{-| Converts a list of digits to an integer.
+{-| Convert a list of digits to an integer.
 
     __Precondition:__ All elements of the input are in @[0..9]@.
 
@@ -33,7 +33,7 @@ ordZero = ord '0'
 fromDigits :: (Integral a) => [Int] -> a
 fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)
 
-{-| Generates the list of digits in the input.
+{-| Generate the list of digits in the input.
 
     __Precondition:__ The input must be nonnegative, so that @toDigits@ is the
     inverse of @fromDigits@.

@@ -1,11 +1,11 @@
 {-| Module      : Data.List.Predicate
-    Description : Transform lists to other lists.
+    Description : Predicates on lists.
     Copyright   : (c) Preetham Gujjula, 2020
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-    Transform lists to other lists.
+    Predicates on lists.
 -}
 module Data.List.Predicate
   ( allEqual
@@ -39,11 +39,7 @@ import Data.List (sort, sortBy)
 allEqual :: (Eq a) => [a] -> Bool
 allEqual = allEqualBy (==)
 
-{-| Like @allEqual@, with a custom equality test. @allEqual@ is as lazy as
-    possible, which means:
-      * allEqualBy _|_ [] == True
-      * allEqualBy _|_ (_|_:[]) == True
-      * allEqualBy _|_ (x1:x2:xs) == undefined
+{-| Like 'allEqual', with a custom equality test.
 
     >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 23]
     True
@@ -58,8 +54,7 @@ allEqualBy :: (a -> a -> Bool) -> [a] -> Bool
 allEqualBy _  []       = True
 allEqualBy eq (x : xs) = all (eq x) xs
 
-{-| Whether the elements are in sorted order. Laziness semantics:
-     * sorted _|_:[] == True
+{-| Whether the elements are in sorted order.
 
     >>> sorted [1, 2, 3, 3]
     True
@@ -73,19 +68,15 @@ allEqualBy eq (x : xs) = all (eq x) xs
 sorted :: (Ord a) => [a] -> Bool
 sorted = sortedBy compare
 
-{-| Like @sorted@, with a custom equality test. @sortedBy@ is as lazy as
-    possible, which means:
-      * sortedBy _|_ [] == True
-      * sortedBy _|_ (_|_:[]) == True
-      * sortedBy _|_ (x1:x2:xs) == undefined
+{-| Like 'sorted', with a custom equality test.
 
     >>> sortedBy (comparing Down) [3, 2, 1]
     True
-    >>> sorted (comparing Down) [3, 2, 1, 2]
+    >>> sortedBy (comparing Down) [3, 2, 1, 2]
     False
-    >>> sorted undefined []
+    >>> sortedBy undefined []
     True
-    >>> sorted undefined [undefined]
+    >>> sortedBy undefined [undefined]
     True
 -}
 sortedBy :: (a -> a -> Ordering) -> [a] -> Bool
@@ -93,28 +84,74 @@ sortedBy _   []  = True
 sortedBy _   [_] = True
 sortedBy cmp xs  = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 
+{-| Whether the elements are all unique.
+
+    >>> allUnique [1, 2, 5, 7]
+    True
+    >>> allUnique [1, 2, 5, 2]
+    False
+    >>> allUnique []
+    True
+    >>> allUnique [1]
+    True
+-}
 allUnique :: (Ord a) => [a] -> Bool
 allUnique = allAdjUnique . sort
 
-{-| Like @allUnique@, with a custom comparison test. -}
+{-| Like 'allUnique', with a custom comparison test.
+
+    >>> allUniqueBy (comparing head) ["apple", "bow", "cat"]
+    True
+    >>> allUniqueBy (comparing head) ["apple", "bow", "ant"]
+    False
+    >>> allUniqueBy undefined []
+    True
+    >>> allUniqueBy undefined [undefined]
+    True
+-}
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
 allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
+{-| Whether all adjacent pairs of elements are different.
+
+    >>> allAdjUnique [4, 2, 3, 2]
+    True
+    >>> allAdjUnique [4, 2, 2, 3]
+    False
+    >>> allAdjUnique []
+    True
+    >>> allAdjUnique [1]
+    True
+-}
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
-{-| Like @allAdjUnique@, with a custom equality test. -}
+{-| Like @allAdjUnique@, with a custom equality test.
+
+    >>> allAdjUniqueBy (comparing head) ["apple", "bow", "cat", "ant"]
+    True
+    >>> allAdjUniqueBy (comparing head) ["apple", "ant", "bow", "cat"]
+    False
+    >>> allAdjUniqueBy undefined []
+    True
+    >>> allAdjUniqueBy undefined [undefined]
+    True
+-}
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
 {-| Whether the list is increasing sequentially.
 
-    >>> ascSequential [1, 2, 3]
+    >>> ascSequential [1, 2, 3, 4, 5]
     True
-    >>> ascSequential [1, 2, 4]
+    >>> ascSequential [1, 2, 3, 4, 8]
     False
+    >>> ascSequential []
+    True
+    >>> ascSequential [1]
+    True
 -}
 ascSequential :: (Enum a) => [a] -> Bool
 ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
@@ -123,10 +160,14 @@ ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
 
 {-| Whether the list is descending sequentially.
 
-    >>> descSequential [3, 2, 1]
+    >>> descSequential [5, 4, 3, 2, 1]
     True
-    >>> descSequential [3, 2, 2]
+    >>> descSequential [5, 4, 3, 3, 1]
     False
+    >>> descSequential []
+    True
+    >>> descSequential [1]
+    True
 -}
 descSequential :: (Enum a) => [a] -> Bool
 descSequential xs = and $ zipWith (==) xs' [x, x - 1 ..]

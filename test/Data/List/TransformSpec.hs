@@ -84,50 +84,6 @@ dropUntilSpec = do
     it "infinite list" $
         take 6 (dropUntil (== 5) [1..]) `shouldBe` [5..10]
 
--- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
--- (allEqual, sorted)
-groupSpec :: Spec
-groupSpec = do
-    it "empty list" $
-        group ([] :: [()]) `shouldBe` []
-    it "finite list" $
-        group [1, 3, 2, 3, 2, 3] `shouldBe` [[1], [2, 2], [3, 3, 3]]
-
-groupBySpec :: Spec
-groupBySpec = do
-    let cmp :: (Ord a) => a -> a -> Ordering
-        cmp = comparing Down
-    it "empty list" $
-        groupBy cmp ([] :: [()]) `shouldBe` []
-    it "finite list" $
-        groupBy cmp [1, 3, 2, 3, 2, 3] `shouldBe` [[3, 3, 3], [2, 2], [1]]
-
-groupAdjSpec :: Spec
-groupAdjSpec = do
-    it "empty list" $
-        groupAdj ([] :: [()]) `shouldBe` []
-    it "finite list" $
-        groupAdj [1, 3, 3, 3, 2, 2] `shouldBe` [[1], [3, 3, 3], [2, 2]]
-    it "infinite list" $ do
-        -- output == [[1], [2, 2], [3, 3, 3]..]
-        let output = map (\x -> replicate x x) [1..]
-            input = concat output
-            n = floor $ sqrt $ fromIntegral infiniteListTruncationLength
-        take n (groupAdj input) `shouldBe` take n output
-
-groupAdjBySpec :: Spec
-groupAdjBySpec = do
-    let eq = (==) `on` head
-    it "empty list" $
-        groupAdjBy eq ([] :: [String]) `shouldBe` []
-    it "finite list" $ do
-        let input = ["apple", "at", "atom", "banana", "bot", "cat", "curry", "clip"]
-            output = [ ["apple", "at", "atom"]
-                     , ["banana", "bot"]
-                     , ["cat", "curry", "clip"]
-                     ]
-        groupAdjBy eq input `shouldBe` output
-
 rotateSpec :: Spec
 rotateSpec = do
     it "empty list, 0 offset" $
@@ -173,6 +129,50 @@ rotateSpec = do
     it "finite list, huge negative offset" $
         rotate (-bigOffset) xs
             `shouldBe` rotate ((-bigOffset) `mod` length xs) xs
+
+-- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
+-- (allEqual, sorted)
+groupSpec :: Spec
+groupSpec = do
+    it "empty list" $
+        group ([] :: [()]) `shouldBe` []
+    it "finite list" $
+        group [1, 3, 2, 3, 2, 3] `shouldBe` [[1], [2, 2], [3, 3, 3]]
+
+groupBySpec :: Spec
+groupBySpec = do
+    let cmp :: (Ord a) => a -> a -> Ordering
+        cmp = comparing Down
+    it "empty list" $
+        groupBy cmp ([] :: [()]) `shouldBe` []
+    it "finite list" $
+        groupBy cmp [1, 3, 2, 3, 2, 3] `shouldBe` [[3, 3, 3], [2, 2], [1]]
+
+groupAdjSpec :: Spec
+groupAdjSpec = do
+    it "empty list" $
+        groupAdj ([] :: [()]) `shouldBe` []
+    it "finite list" $
+        groupAdj [1, 3, 3, 3, 2, 2] `shouldBe` [[1], [3, 3, 3], [2, 2]]
+    it "infinite list" $ do
+        -- output == [[1], [2, 2], [3, 3, 3]..]
+        let output = map (\x -> replicate x x) [1..]
+            input = concat output
+            n = floor $ sqrt $ fromIntegral infiniteListTruncationLength
+        take n (groupAdj input) `shouldBe` take n output
+
+groupAdjBySpec :: Spec
+groupAdjBySpec = do
+    let eq = (==) `on` head
+    it "empty list" $
+        groupAdjBy eq ([] :: [String]) `shouldBe` []
+    it "finite list" $ do
+        let input = ["apple", "at", "atom", "banana", "bot", "cat", "curry", "clip"]
+            output = [ ["apple", "at", "atom"]
+                     , ["banana", "bot"]
+                     , ["cat", "curry", "clip"]
+                     ]
+        groupAdjBy eq input `shouldBe` output
 
 deleteDupsSpec :: Spec
 deleteDupsSpec = do

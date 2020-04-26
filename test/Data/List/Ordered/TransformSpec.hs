@@ -29,12 +29,16 @@ spec :: Spec
 spec = do
     describe "merge" mergeSpec
     describe "mergeBy" mergeBySpec
+
     describe "diff" diffSpec
     describe "diffBy" diffBySpec
+
     describe "intersect" intersectSpec
     describe "intersectBy" intersectBySpec
+
     describe "union" unionSpec
     describe "unionBy" unionBySpec
+
     describe "test functions together" togetherSpec
 
     describe "mergeMany" mergeManySpec

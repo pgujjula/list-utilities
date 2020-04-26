@@ -14,14 +14,18 @@ spec :: Spec
 spec = do
     describe "allEqual" allEqualSpec
     describe "allEqualBy" allEqualBySpec
+
     describe "sorted" sortedSpec
     describe "sortedBy" sortedBySpec
+
     describe "allUnique" allUniqueSpec
     describe "allUniqueBy" allUniqueBySpec
     describe "allAdjUnique" allAdjUniqueSpec
     describe "allAdjUniqueBy" allAdjUniqueBySpec
+
     describe "ascSequentialSpec" ascSequentialSpec
     describe "descSequentialSpec" descSequentialSpec
+
     describe "palindrome" palindromeSpec
 
 allEqualSpec :: Spec
@@ -152,6 +156,37 @@ allAdjUniqueBySpec = do
     it "finite list, one repeat" $
         allAdjUniqueBy eq [1, 5, 18, 8, 2, 5] `shouldBe` False
 
+ascSequentialSpec :: Spec
+ascSequentialSpec = do
+    it "empty list" $
+        ascSequential ([] :: [()]) `shouldBe` True
+    it "singleton list" $
+        ascSequential [1] `shouldBe` True
+    it "finite list, ascending" $
+        ascSequential [1..10] `shouldBe` True
+    it "finite list, not ascending" $ do
+        ascSequential ([1..5] ++ [5] ++ [undefined] ++ [6..10]) `shouldBe` False
+        ascSequential ([1..5] ++ [4] ++ [undefined] ++ [6..10]) `shouldBe` False
+    it "infinite list, not ascending" $
+        ascSequential ([1..10] ++ [9] ++ [undefined] ++ [9..]) `shouldBe` False
+
+descSequentialSpec :: Spec
+descSequentialSpec = do
+    it "empty list" $
+        descSequential ([] :: [Int]) `shouldBe` True
+    it "singleton list" $
+        descSequential ([] :: [Int]) `shouldBe` True
+    it "finite list, descending" $
+        descSequential [10, 9..1] `shouldBe` True
+    it "finite list, not ascending" $ do
+        descSequential ([10, 9..6] ++ [6] ++ [undefined] ++ [5, 4..1])
+            `shouldBe` False
+        descSequential ([10, 9..6] ++ [7] ++ [undefined] ++ [5, 4..1])
+            `shouldBe` False
+    it "infinite list, not ascending" $
+        descSequential ([0, -1..(-10)] ++ [-9] ++ [undefined] ++ [-9, -8..])
+            `shouldBe` False
+
 palindromeSpec :: Spec
 palindromeSpec = do
     it "empty list" $
@@ -184,34 +219,3 @@ palindromeSpec = do
             forAll palindromeGen palindrome
         it "arbitrary non-palindromes" $
             forAll nonPalindromeGen (not . palindrome)
-
-ascSequentialSpec :: Spec
-ascSequentialSpec = do
-    it "empty list" $
-        ascSequential ([] :: [()]) `shouldBe` True
-    it "singleton list" $
-        ascSequential [1] `shouldBe` True
-    it "finite list, ascending" $
-        ascSequential [1..10] `shouldBe` True
-    it "finite list, not ascending" $ do
-        ascSequential ([1..5] ++ [5] ++ [undefined] ++ [6..10]) `shouldBe` False
-        ascSequential ([1..5] ++ [4] ++ [undefined] ++ [6..10]) `shouldBe` False
-    it "infinite list, not ascending" $
-        ascSequential ([1..10] ++ [9] ++ [undefined] ++ [9..]) `shouldBe` False
-
-descSequentialSpec :: Spec
-descSequentialSpec = do
-    it "empty list" $
-        descSequential ([] :: [Int]) `shouldBe` True
-    it "singleton list" $
-        descSequential ([] :: [Int]) `shouldBe` True
-    it "finite list, descending" $
-        descSequential [10, 9..1] `shouldBe` True
-    it "finite list, not ascending" $ do
-        descSequential ([10, 9..6] ++ [6] ++ [undefined] ++ [5, 4..1])
-            `shouldBe` False
-        descSequential ([10, 9..6] ++ [7] ++ [undefined] ++ [5, 4..1])
-            `shouldBe` False
-    it "infinite list, not ascending" $
-        descSequential ([0, -1..(-10)] ++ [-9] ++ [undefined] ++ [-9, -8..])
-            `shouldBe` False

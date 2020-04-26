@@ -12,32 +12,11 @@ import Data.List.Digit (fromDigits, toDigits)
 
 spec :: Spec
 spec = do
-    describe "toDigits" toDigitsSpec
     describe "fromDigits" fromDigitsSpec
+    describe "toDigits" toDigitsSpec
 
 digits :: (Integral a) => [a]
 digits = [0..9]
-
-toDigitsSpec :: Spec
-toDigitsSpec = do
-    let testDigits :: (Integral a) => [a] -> Expectation
-        testDigits ds = forM_ ds $ \x ->
-            toDigits x `shouldBe` [fromIntegral x]
-     in do
-        it "single-digit Ints"     $ testDigits (digits :: [Int])
-        it "single-digit Integers" $ testDigits (digits :: [Integer])
-        it "double digits"         $ toDigits 34 `shouldBe` [3, 4]
-
-    let naive :: (Integral a, Show a) => a -> [Int]
-        naive = map (read . (:[])) . show
-
-        test :: (Integral a, Show a) => a -> Property
-        test x = toDigits x === naive x
-     in do
-        it "arbitrary length Int" $
-            forAll (arbitrary `suchThat` (>= 0) :: Gen Int) test
-        it "arbitrary length Integer" $
-            forAll (arbitrary `suchThat` (>= 0) :: Gen Integer) test
 
 fromDigitsSpec :: Spec
 fromDigitsSpec = do
@@ -76,3 +55,24 @@ fromDigitsSpec = do
             forAll smallListGen (test (Proxy :: Proxy Int))
         it "arbitrary inputs, output type Integer" $
             forAll digitListGen (test (Proxy :: Proxy Integer))
+
+toDigitsSpec :: Spec
+toDigitsSpec = do
+    let testDigits :: (Integral a) => [a] -> Expectation
+        testDigits ds = forM_ ds $ \x ->
+            toDigits x `shouldBe` [fromIntegral x]
+     in do
+        it "single-digit Ints"     $ testDigits (digits :: [Int])
+        it "single-digit Integers" $ testDigits (digits :: [Integer])
+        it "double digits"         $ toDigits 34 `shouldBe` [3, 4]
+
+    let naive :: (Integral a, Show a) => a -> [Int]
+        naive = map (read . (:[])) . show
+
+        test :: (Integral a, Show a) => a -> Property
+        test x = toDigits x === naive x
+     in do
+        it "arbitrary length Int" $
+            forAll (arbitrary `suchThat` (>= 0) :: Gen Int) test
+        it "arbitrary length Integer" $
+            forAll (arbitrary `suchThat` (>= 0) :: Gen Integer) test

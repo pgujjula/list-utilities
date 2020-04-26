@@ -241,9 +241,9 @@ applyMergeSpec = do
     it "both empty" $
         applyMerge undefined [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        applyMerge undefined [] [1, 2, 3] `shouldBe` []
+        applyMerge undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
     it "right empty" $
-        applyMerge undefined [1, 2, 3] [] `shouldBe` []
+        applyMerge undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
 
     let naive :: (Ord a) => (a -> a -> a) -> [a] -> [a] -> [a]
         naive op xs ys = trunc $ sort (op <$> trunc xs <*> trunc ys)

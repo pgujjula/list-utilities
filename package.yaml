@@ -22,8 +22,16 @@ dependencies:
 
 ghc-options:
 - -Wall
+- -Wcompat
 - -Wmissing-export-lists
-- -fwarn-tabs
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wpartial-fields
+- -Wmissing-home-modules
+- -Werror=missing-home-modules
+- -Widentities
+- -Wredundant-constraints
+- -Wmissing-export-lists
 
 library:
   source-dirs: src
@@ -57,3 +65,4 @@ executables:
       - tsil
     ghc-options:
     - -Wno-type-defaults
+    - -Wno-redundant-constraints

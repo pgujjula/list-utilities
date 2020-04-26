@@ -33,10 +33,10 @@ fromDigitsSpec = do
     it "single-digit inputs, output type Integer" $
         testDigits (digits :: [Integer])
 
-    let naive :: (Integral a, Show a, Read a) => [Int] -> a
+    let naive :: (Integral a, Read a) => [Int] -> a
         naive = read . concatMap show . (0:)
 
-        test :: forall a. (Integral a, Show a, Read a)
+        test :: forall a. (Integral a, Read a)
              => Proxy a -> [Int] -> Property
         test _ xs =
             toInteger (fromDigits xs :: a) === (naive xs :: Integer)

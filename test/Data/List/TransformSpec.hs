@@ -155,8 +155,8 @@ groupAdjSpec = do
     it "finite list" $
         groupAdj [1, 3, 3, 3, 2, 2] `shouldBe` [[1], [3, 3, 3], [2, 2]]
     it "infinite list" $ do
-        -- output == [[1], [2, 2], [3, 3, 3]..]
-        let output = map (\x -> replicate x x) [1..]
+        let -- output == [[1], [2, 2], [3, 3, 3]..]
+            output = map (\x -> replicate x x) [1..]
             input = concat output
             n = floor $ sqrt $ fromIntegral infiniteListTruncationLength
         take n (groupAdj input) `shouldBe` take n output

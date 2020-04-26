@@ -130,7 +130,8 @@ rotateSpec = do
         rotate (-bigOffset) xs
             `shouldBe` rotate ((-bigOffset) `mod` length xs) xs
 
--- TODO: We can add randomized tests once we add predicates to Data.List.Predicate
+-- TODO: We can add randomized tests once we add predicates to
+-- Data.List.Predicate
 -- (allEqual, sorted)
 groupSpec :: Spec
 groupSpec = do
@@ -167,7 +168,9 @@ groupAdjBySpec = do
     it "empty list" $
         groupAdjBy eq ([] :: [String]) `shouldBe` []
     it "finite list" $ do
-        let input = ["apple", "at", "atom", "banana", "bot", "cat", "curry", "clip"]
+        let input = [ "apple", "at", "atom"
+                    , "banana", "bot"
+                    , "cat", "curry", "clip"]
             output = [ ["apple", "at", "atom"]
                      , ["banana", "bot"]
                      , ["cat", "curry", "clip"]

@@ -34,7 +34,8 @@ import           Data.Maybe           (catMaybes, mapMaybe)
 import           Data.PQueue.Prio.Min (MinPQueue, minViewWithKey)
 import qualified Data.PQueue.Prio.Min as PQueue
 
-{-| Merge two ordered lists. Works lazily on infinite lists. Left side is preferred on ties.
+{-| Merge two ordered lists. Works lazily on infinite lists. Left side is
+    preferred on ties.
 
     >>> merge [2, 4, 6, 8] [1, 3, 5, 7]
     [1, 2, 3, 4, 5, 6, 7]
@@ -104,8 +105,8 @@ intersectBy cmp (x:xs) (y:ys) =
 union :: (Ord a) => [a] -> [a] -> [a]
 union = unionBy compare
 
-{-| Like @union@ with a custom comparison function. Left side is preferred in case
-    of matching elements.
+{-| Like @union@ with a custom comparison function. Left side is preferred in
+    case of matching elements.
  -}
 unionBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 unionBy _ [] xs = xs
@@ -118,7 +119,8 @@ unionBy cmp (x:xs) (y:ys) =
 
 -- mergeMany algorithm
 -- ===================
--- This function uses a priority queue to generate elements in the right order. Consider a list of lists:
+-- This function uses a priority queue to generate elements in the right order.
+-- Consider a list of lists:
 --   [[1, 2, 3..], [2, 4, 6..], [3, 6, 9..], ..]
 -- It can be represented in the following tree structure:
 --   1 - 2 - 3 - ...
@@ -128,16 +130,23 @@ unionBy cmp (x:xs) (y:ys) =
 --       3 - 6 - 9 - ...
 --        \
 --         ...
--- We denote a value along with its children as a Segment. There are two kinds of Segments: Trees and Branches,
--- and every Segment has a root node, and maybe some Segments as children. For example, in the structure above,
--- the 1 is rooting a Tree, while the 2 on its right is rooting a Branch. The 2 below is rooting another Tree.
+-- We denote a value along with its children as a Segment. There are two kinds
+-- of Segments: Trees and Branches,
+-- and every Segment has a root node, and maybe some Segments as children. For
+-- example, in the structure above,
+-- the 1 is rooting a Tree, while the 2 on its right is rooting a Branch. The 2
+-- below is rooting another Tree.
 --
--- It's clear a Tree has at most one Tree and one Branch as children, while a Branch has at most another Branch
+-- It's clear a Tree has at most one Tree and one Branch as children, while a
+-- Branch has at most another Branch
 -- as a child.
 --
--- To generate all the values in the structure in sorted order, we maintain a priority queue of all unprocessed
--- Segments, prioritied by their root node. The queue is initialized with a single Tree, representing the entire
--- structure. To generate an element, we pop the minimum Segment, yield the root node, and reinsert the children.
+-- To generate all the values in the structure in sorted order, we maintain a
+-- priority queue of all unprocessed
+-- Segments, prioritied by their root node. The queue is initialized with a
+-- single Tree, representing the entire
+-- structure. To generate an element, we pop the minimum Segment, yield the root
+-- node, and reinsert the children.
 -- If the queue becomes empty, we have yielded the entire list, so we stop.
 
 data Segment a = Branch (NonEmpty a)
@@ -155,7 +164,8 @@ children (Tree ((_ :| xs) :| xss)) =
 
 {-| Merge a list of lists. Works with infinite lists of infinite lists.
 
-    __Preconditions:__ Each list must be sorted, and the list of lists must be sorted by first element.
+    __Preconditions:__ Each list must be sorted, and the list of lists must be
+    sorted by first element.
 
     >>> take 10 $ mergeMany $ map (\x -> [x..]) [1..]
     [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
@@ -184,8 +194,8 @@ mergeMany xss =
 
 -- TODO: Improve this explanation.
 {-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
-    yields in sorted order, [z | z = x*y, x <- xs, y <- ys]. Works even if xs, ys are
-    infinite.
+    yields in sorted order, [z | z = x*y, x <- xs, y <- ys]. Works even if xs,
+    ys are infinite.
 
     __Preconditions:__ Each list must be sorted, and the operation must be
     non-decreasing in both arguments. That is,

@@ -95,8 +95,9 @@ diffSpec = do
         forAll (pairOf sortedGen) $ \(xs, ys) ->
             diff xs ys `shouldBe` (xs \\ ys)
     -- too hard to construct arbitrary infinite lists test.
-    -- simplest way to determine a prefix of the difference of two infinite lists
-    -- is to construct the diff algorithm itself. So we settle for a hand-made unit test.
+    -- simplest way to determine a prefix of the difference of two infinite
+    -- lists is to construct the diff algorithm itself. So we settle for a
+    -- hand-made unit test.
     it "infinite lists" $
         let xs = [1..]
             ys = map (^2) [1..]
@@ -111,7 +112,6 @@ diffBySpec = do
         diffBy undefined [] undefined `shouldBe` ([] :: [()])
     it "right empty" $
         diffBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
-    -- The functionality testing is done in diffSpec. This is just a sanity check
     it "finite list" $
         diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
 
@@ -179,8 +179,10 @@ togetherSpec :: Spec
 togetherSpec = it "x ∪ y == (x ∩ y) + (x - y) + (y - x)" $
     let gen = sortedGenWith defaultConfig {repeatedness = Repeated}
      in forAll (pairOf gen) $ \(xs, ys) ->
-            union xs ys
-                === foldl1' merge [xs `intersect` ys, xs `diff` ys, ys `diff` xs]
+            union xs ys === foldl1' merge [ xs `intersect` ys
+                                          , xs `diff` ys
+                                          , ys `diff` xs
+                                          ]
 
 -- TODO: Add transposition test
 mergeManySpec :: Spec
@@ -248,8 +250,10 @@ applyMergeSpec = do
     let naive :: (Ord a) => (a -> a -> a) -> [a] -> [a] -> [a]
         naive op xs ys = trunc $ sort (op <$> trunc xs <*> trunc ys)
 
-        hunitTest :: (Ord a, Show a) => (a -> a -> a) -> [a] -> [a] -> Expectation
-        hunitTest op xs ys = trunc (applyMerge op xs ys) `shouldBe` naive op xs ys
+        hunitTest :: (Ord a, Show a)
+                  => (a -> a -> a) -> [a] -> [a] -> Expectation
+        hunitTest op xs ys =
+            trunc (applyMerge op xs ys) `shouldBe` naive op xs ys
 
         infiniteSortedGen :: Gen [Integer]
         infiniteSortedGen = sortedGenWith defaultConfig {finiteness = Infinite}

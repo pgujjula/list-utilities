@@ -213,7 +213,7 @@ palindromeSpec = do
             return $ xs ++ c ++ reverse xs
 
         nonPalindromeGen :: Gen String
-        nonPalindromeGen = listOf arbitrary `suchThat` (not . naive) :: Gen String
+        nonPalindromeGen = listOf arbitrary `suchThat` (not . naive)
     it "arbitrary palindromes" $
         forAll palindromeGen palindrome
     it "arbitrary non-palindromes" $

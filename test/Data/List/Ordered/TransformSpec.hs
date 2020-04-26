@@ -2,7 +2,7 @@
 module Data.List.Ordered.TransformSpec (spec) where
 
 import Control.Arrow               ((>>>))
-import Data.List                   (foldl1', sort, (\\))
+import Data.List                   (foldl1', sort, transpose, (\\))
 import Data.Ord                    (Down (Down), comparing)
 
 import Test.Hspec                  (Expectation, Spec, describe, it, shouldBe,
@@ -202,7 +202,6 @@ togetherSpec = it "x ∪ y == (x ∩ y) + (x - y) + (y - x)" $
                                           , ys `diff` xs
                                           ]
 
--- TODO: Add transposition test
 mergeManySpec :: Spec
 mergeManySpec = do
     let naive :: (Ord a) => [[a]] -> [a]
@@ -255,6 +254,10 @@ mergeManySpec = do
         testProduct sortedGen infiniteSortedGen
     it "arbitrary infinite lists of infinite lists" $
         testProduct infiniteSortedGen infiniteSortedGen
+
+    it "transposition test" $
+        forAllInfinite (productsGen infiniteSortedGen infiniteSortedGen) $
+            \xss -> trunc (mergeMany xss) == trunc (mergeMany $ transpose xss)
 
 applyMergeSpec :: Spec
 applyMergeSpec = do

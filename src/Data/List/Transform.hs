@@ -73,6 +73,34 @@ dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil _ []     = []
 dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 
+{-| Rotate a list by an offset. Positive offset is left rotation, negative is
+    right. Zero- and left-rotation work with infinite lists. Also works if the
+    offset is greater than the length of the list.
+
+    >>> rotate 2 [1..6]
+    [5, 6, 1, 2, 3, 4]
+    >>> rotate (-2) [1..6]
+    [3, 4, 5, 6, 1, 2]
+    >>> rotate 0 [1..6]
+    [1, 2, 3, 4, 5, 6]
+    >>> take 6 $ rotate (-2) [1..]
+    [3, 4, 5, 6, 7, 8]
+    >>> rotate 5 [1, 2, 3]
+    [2, 3, 1]
+-}
+rotate :: Int -> [a] -> [a]
+rotate _ [] = []
+rotate n xs = zs ++ ys
+  where
+    (ys, zs) = splitAt nModLength xs
+    nModLength | n < 0     = n `mod` length xs
+               | otherwise = n `rem` lengthTo n xs
+
+    -- The length of an list, up to a maximum mx. The length of any list
+    -- with length longer than m is reported as mx + 1.
+    lengthTo :: Int -> [a] -> Int
+    lengthTo mx = sum . take (mx + 1) . map (const 1)
+
 {-| @group xs@ groups elements of xs that are equal. The groups are returned in
     a sorted order, so a group of a smaller element appears before a group of a
     larger one.
@@ -130,31 +158,3 @@ deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
 deleteAdjDupsBy eq xs@(x : _) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
-
-{-| Rotate a list by an offset. Positive offset is left rotation, negative is
-    right. Zero- and left-rotation work with infinite lists. Also works if the
-    offset is greater than the length of the list.
-
-    >>> rotate 2 [1..6]
-    [5, 6, 1, 2, 3, 4]
-    >>> rotate (-2) [1..6]
-    [3, 4, 5, 6, 1, 2]
-    >>> rotate 0 [1..6]
-    [1, 2, 3, 4, 5, 6]
-    >>> take 6 $ rotate (-2) [1..]
-    [3, 4, 5, 6, 7, 8]
-    >>> rotate 5 [1, 2, 3]
-    [2, 3, 1]
--}
-rotate :: Int -> [a] -> [a]
-rotate _ [] = []
-rotate n xs = zs ++ ys
-  where
-    (ys, zs) = splitAt nModLength xs
-    nModLength | n < 0     = n `mod` length xs
-               | otherwise = n `rem` lengthTo n xs
-
-    -- The length of an list, up to a maximum mx. The length of any list
-    -- with length longer than m is reported as mx + 1.
-    lengthTo :: Int -> [a] -> Int
-    lengthTo mx = sum . take (mx + 1) . map (const 1)

@@ -150,11 +150,11 @@ palindrome xs = and $ take (len `div` 2) $ zipWith (==) xs rev
   where
     (rev, len) = reverseLength xs
 
--- get the reverse and the length of a list in one pass
+-- Get the reverse and the length of a list in one pass.
 reverseLength :: [a] -> ([a], Int)
 reverseLength = reverseLengthWith [] 0
   where
-    -- accumulate the reverse and the length
+    -- Accumulate the reverse and the length.
     reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
     reverseLengthWith ys n [] = (ys, n)
     reverseLengthWith ys n (x : xs) =

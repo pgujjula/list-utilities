@@ -74,6 +74,26 @@ diffBy cmp (x:xs) (y:ys) =
         EQ -> diffBy cmp xs ys
         GT -> diffBy cmp (x:xs) ys
 
+{-| Yields all the elements in both lists with multiplicities considered.
+
+    >>> intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7]
+    [2, 3, 3, 5]
+-}
+intersect :: (Ord a) => [a] -> [a] -> [a]
+intersect = intersectBy compare
+
+{-| Like @intersect@ with a custom compaison function. Left side is preferred as
+    the "representative" of a matching pair in case of ties.
+-}
+intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+intersectBy _ [] _ = []
+intersectBy _ _ [] = []
+intersectBy cmp (x:xs) (y:ys) =
+    case cmp x y of
+        LT -> intersectBy cmp xs (y:ys)
+        EQ -> x : intersectBy cmp xs ys
+        GT -> intersectBy cmp (x:xs) ys
+
 {-| Yields all the elements in either list, with
     multiplicities considered. The number of times x is in the output is the
     max of how many times it is in each list.
@@ -95,26 +115,6 @@ unionBy cmp (x:xs) (y:ys) =
         LT -> x : unionBy cmp xs (y:ys)
         EQ -> x : unionBy cmp xs ys
         GT -> y : unionBy cmp (x:xs) ys
-
-{-| Yields all the elements in both lists with multiplicities considered.
-
-    >>> intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7]
-    [2, 3, 3, 5]
--}
-intersect :: (Ord a) => [a] -> [a] -> [a]
-intersect = intersectBy compare
-
-{-| Like @intersect@ with a custom compaison function. Left side is preferred as
-    the "representative" of a matching pair in case of ties.
--}
-intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-intersectBy _ [] _ = []
-intersectBy _ _ [] = []
-intersectBy cmp (x:xs) (y:ys) =
-    case cmp x y of
-        LT -> intersectBy cmp xs (y:ys)
-        EQ -> x : intersectBy cmp xs ys
-        GT -> intersectBy cmp (x:xs) ys
 
 -- mergeMany algorithm
 -- ===================

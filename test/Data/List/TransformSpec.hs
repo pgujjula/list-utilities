@@ -1,15 +1,16 @@
 module Data.List.TransformSpec (spec) where
 
 import Data.Function       (on)
-import Data.List           (nub, nubBy, sort, sortBy)
+import Data.List           (nub, sort)
 import Data.Ord            (Down (Down), comparing)
 
-import Test.Hspec          (Spec, describe, it, shouldBe)
-import Test.QuickCheck     (Gen, arbitrary, choose, forAll, listOf, (===))
+import Test.Hspec          (Spec, describe, it, shouldBe, shouldSatisfy)
+import Test.QuickCheck     (Gen, Property, choose, forAll, listOf, (===))
 
 import Data.List.Gen       (Finiteness (Infinite), Repeatedness (Repeated),
                             defaultConfig, finiteness, repeatedness,
                             sortedGenWith)
+import Data.List.Predicate (allAdjUnique, allEqual, allUnique)
 import Data.List.Transform (deleteAdjDups, deleteAdjDupsBy, deleteDups,
                             deleteDupsBy, dropUntil, group, groupAdj,
                             groupAdjBy, groupBy, rotate, takeEvery, takeUntil)
@@ -130,15 +131,26 @@ rotateSpec = do
         rotate (-bigOffset) xs
             `shouldBe` rotate ((-bigOffset) `mod` length xs) xs
 
--- TODO: We can add randomized tests once we add predicates to
--- Data.List.Predicate
--- (allEqual, sorted)
 groupSpec :: Spec
 groupSpec = do
     it "empty list" $
         group ([] :: [()]) `shouldBe` []
+    it "singleton list" $
+        group [1] `shouldBe` [[1]]
     it "finite list" $
         group [1, 3, 2, 3, 2, 3] `shouldBe` [[1], [2, 2], [3, 3, 3]]
+
+    let valid :: (Ord a, Show a) => [a] -> Bool
+        valid xss = all (not . null) gs
+                 && all allEqual gs
+                 && concat gs == sort xss
+                 && allUnique hs
+          where
+            gs = group xss
+            hs = map head gs
+
+    it "arbitrary finite lists" $
+        forAll (listOf $ choose (1 :: Int, 10)) (`shouldSatisfy` valid)
 
 groupBySpec :: Spec
 groupBySpec = do
@@ -146,6 +158,8 @@ groupBySpec = do
         cmp = comparing Down
     it "empty list" $
         groupBy cmp ([] :: [()]) `shouldBe` []
+    it "singleton list" $
+        groupBy cmp [1] `shouldBe` [[1]]
     it "finite list" $
         groupBy cmp [1, 3, 2, 3, 2, 3] `shouldBe` [[3, 3, 3], [2, 2], [1]]
 
@@ -153,6 +167,8 @@ groupAdjSpec :: Spec
 groupAdjSpec = do
     it "empty list" $
         groupAdj ([] :: [()]) `shouldBe` []
+    it "singleton list" $
+        groupAdj [1] `shouldBe` [[1]]
     it "finite list" $
         groupAdj [1, 3, 3, 3, 2, 2] `shouldBe` [[1], [3, 3, 3], [2, 2]]
     it "infinite list" $ do
@@ -162,11 +178,31 @@ groupAdjSpec = do
             n = floor $ sqrt $ fromIntegral infiniteListTruncationLength
         take n (groupAdj input) `shouldBe` take n output
 
+    let valid :: (Eq a, Show a) => [a] -> Bool
+        valid xss = all (not . null) gs
+                 && all allEqual gs
+                 && trunc (concat gs) == trunc xss
+                 && allAdjUnique hs
+          where
+            gs = trunc $ groupAdj xss
+            hs = map head gs
+
+        test :: (Eq a, Show a) => Gen [a] -> Property
+        test gen = forAll gen (`shouldSatisfy` valid)
+
+    it "arbitrary finite lists" $
+        test $ sortedGenWith defaultConfig {repeatedness = Repeated}
+    it "arbitrary infinite lists" $
+        test $ sortedGenWith defaultConfig { repeatedness = Repeated
+                                           , finiteness = Infinite}
+
 groupAdjBySpec :: Spec
 groupAdjBySpec = do
     let eq = (==) `on` head
     it "empty list" $
         groupAdjBy eq ([] :: [String]) `shouldBe` []
+    it "singleton list" $
+        groupAdjBy eq ["abc"] `shouldBe` [["abc"]]
     it "finite list" $ do
         let input = [ "apple", "at", "atom"
                     , "banana", "bot"
@@ -193,11 +229,10 @@ deleteDupsBySpec = do
         deleteDupsBy undefined [] `shouldBe` ([] :: [()])
     it "singleton list" $
         deleteDupsBy undefined [1] `shouldBe` [1]
-    it "arbitrary finite lists" $ do
-        let cmp = comparing (`rem` 5)
-            eq a b = cmp a b == EQ
-            gen = listOf (choose (1 :: Int, 10))
-        forAll gen $ \xs -> deleteDupsBy cmp xs === sortBy cmp (nubBy eq xs)
+    it "finite list" $ do
+        let cmp = comparing head
+        deleteDupsBy cmp ["apple", "banana", "ant", "car", "chest", "boat"]
+            `shouldBe` ["apple", "banana", "car"]
 
 deleteAdjDupsSpec :: Spec
 deleteAdjDupsSpec = do
@@ -210,8 +245,7 @@ deleteAdjDupsSpec = do
         forAll gen $ \xs -> deleteAdjDups xs === sort (nub xs)
     it "arbitrary infinite lists" $ do
         let gen = sortedGenWith defaultConfig { repeatedness = Repeated
-                                              , finiteness = Infinite
-                                              }
+                                              , finiteness = Infinite}
         forAll gen $ \xs ->
             let ys = trunc $ deleteAdjDups xs
                 maxY = last ys
@@ -224,9 +258,7 @@ deleteAdjDupsBySpec = do
         deleteDupsBy undefined [] `shouldBe` ([] :: [()])
     it "singleton list" $
         deleteDupsBy undefined [1] `shouldBe` [1]
-    it "arbitrary finite lists" $ do
-        let gen = sortBy cmp <$> listOf (arbitrary :: Gen Integer)
-            cmp = comparing (`rem` 10)
-            eq a b = cmp a b == EQ
-        forAll gen $ \xs ->
-            deleteAdjDupsBy eq xs === sortBy cmp (nubBy eq xs)
+    it "finite list" $ do
+        let eq = (==) `on` fst
+        deleteAdjDupsBy eq [("a", 3), ("b", 4), ("b", 2), ("c", 4), ("a", 2)]
+            `shouldBe` [("a", 3), ("b", 4), ("c", 4), ("a", 2)]

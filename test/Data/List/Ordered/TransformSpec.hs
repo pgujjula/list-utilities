@@ -135,7 +135,7 @@ intersectSpec = do
         let xs = map (^2) [1..]
             ys = map (^3) [1..]
             zs = map (^6) [1..]
-         in trunc (intersect xs ys) `shouldBe` trunc zs
+         in trunc (xs `intersect` ys) `shouldBe` trunc zs
 
     -- Since the Data.List implementation of intersect doesn't have the multiset
     -- semantics of this impelementation, we can't use it as a reference for
@@ -172,7 +172,7 @@ unionSpec = do
         let xs = filter (\t -> t `rem` 4 == 1) [1..]
             ys = filter (\t -> t `rem` 4 == 3) [1..]
             zs = filter odd [1..]
-         in trunc (union xs ys) `shouldBe` trunc zs
+         in trunc (xs `union` ys) `shouldBe` trunc zs
 
     -- The same problem with intersect (described above) means that its hard to
     -- make QuickCheck tests, so we leave it at hand-written unit tests.

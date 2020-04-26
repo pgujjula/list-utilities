@@ -27,8 +27,6 @@ spec = do
     describe "takeUntil" takeUntilSpec
     describe "dropUntil" dropUntilSpec
 
-    describe "rotate" rotateSpec
-
     describe "group" groupSpec
     describe "groupBy" groupBySpec
     describe "groupAdj" groupAdjSpec
@@ -38,6 +36,8 @@ spec = do
     describe "deleteDupsBy" deleteDupsBySpec
     describe "deleteAdjDups" deleteAdjDupsSpec
     describe "deleteAdjDupsBy" deleteAdjDupsBySpec
+
+    describe "rotate" rotateSpec
 
 takeEverySpec :: Spec
 takeEverySpec = do
@@ -84,52 +84,6 @@ dropUntilSpec = do
         dropUntil (const False) [1..10] `shouldBe` []
     it "infinite list" $
         take 6 (dropUntil (== 5) [1..]) `shouldBe` [5..10]
-
-rotateSpec :: Spec
-rotateSpec = do
-    it "empty list, 0 offset" $
-        rotate 0 [] `shouldBe` ([] :: [()])
-    it "empty list, positive offset" $
-        rotate 3 [] `shouldBe` ([] :: [()])
-    it "empty list, negative offset" $
-        rotate (-2) [] `shouldBe` ([] :: [()])
-
-    it "singleton list, 0 offset" $
-        rotate 0 [1] `shouldBe` [1]
-    it "singleton list, positive offset" $
-        rotate 2 [1] `shouldBe` [1]
-    it "singleton list, negative offset" $
-        rotate (-2) [1] `shouldBe` [1]
-
-    let xs = [1..6]
-    it "finite list, 0 offset" $
-        rotate 0 xs `shouldBe` xs
-    it "finite list, positive offset" $
-        rotate 2 xs `shouldBe` [3, 4, 5, 6, 1, 2]
-    it "finite list, negative offset" $
-        rotate (-2) xs `shouldBe` [5, 6, 1, 2, 3, 4]
-
-    it "finite list, positive offset equals length" $
-        rotate 6 xs `shouldBe` xs
-    it "finite list, negative offset equals negative length" $
-        rotate (-6) xs `shouldBe` xs
-
-    it "finite list, positive offset greater than length" $
-        rotate 10 xs `shouldBe` [5, 6, 1, 2, 3, 4]
-    it "finite list, negative offset greater than length" $
-        rotate (-10) xs `shouldBe` [3, 4, 5, 6, 1, 2]
-
-    it "infinite list, 0 offset" $
-        take 10 (rotate 0 [1..]) `shouldBe` [1..10]
-    it "ininite list, positive offset" $
-        take 10 (rotate 10 [1..]) `shouldBe` [11..20]
-
-    let bigOffset = 3*10^8
-    it "finite list, huge positive offset" $
-        rotate bigOffset xs `shouldBe` rotate (bigOffset `mod` length xs) xs
-    it "finite list, huge negative offset" $
-        rotate (-bigOffset) xs
-            `shouldBe` rotate ((-bigOffset) `mod` length xs) xs
 
 groupSpec :: Spec
 groupSpec = do
@@ -262,3 +216,49 @@ deleteAdjDupsBySpec = do
         let eq = (==) `on` fst
         deleteAdjDupsBy eq [("a", 3), ("b", 4), ("b", 2), ("c", 4), ("a", 2)]
             `shouldBe` [("a", 3), ("b", 4), ("c", 4), ("a", 2)]
+
+rotateSpec :: Spec
+rotateSpec = do
+    it "empty list, 0 offset" $
+        rotate 0 [] `shouldBe` ([] :: [()])
+    it "empty list, positive offset" $
+        rotate 3 [] `shouldBe` ([] :: [()])
+    it "empty list, negative offset" $
+        rotate (-2) [] `shouldBe` ([] :: [()])
+
+    it "singleton list, 0 offset" $
+        rotate 0 [1] `shouldBe` [1]
+    it "singleton list, positive offset" $
+        rotate 2 [1] `shouldBe` [1]
+    it "singleton list, negative offset" $
+        rotate (-2) [1] `shouldBe` [1]
+
+    let xs = [1..6]
+    it "finite list, 0 offset" $
+        rotate 0 xs `shouldBe` xs
+    it "finite list, positive offset" $
+        rotate 2 xs `shouldBe` [3, 4, 5, 6, 1, 2]
+    it "finite list, negative offset" $
+        rotate (-2) xs `shouldBe` [5, 6, 1, 2, 3, 4]
+
+    it "finite list, positive offset equals length" $
+        rotate 6 xs `shouldBe` xs
+    it "finite list, negative offset equals negative length" $
+        rotate (-6) xs `shouldBe` xs
+
+    it "finite list, positive offset greater than length" $
+        rotate 10 xs `shouldBe` [5, 6, 1, 2, 3, 4]
+    it "finite list, negative offset greater than length" $
+        rotate (-10) xs `shouldBe` [3, 4, 5, 6, 1, 2]
+
+    it "infinite list, 0 offset" $
+        take 10 (rotate 0 [1..]) `shouldBe` [1..10]
+    it "ininite list, positive offset" $
+        take 10 (rotate 10 [1..]) `shouldBe` [11..20]
+
+    let bigOffset = 3*10^8
+    it "finite list, huge positive offset" $
+        rotate bigOffset xs `shouldBe` rotate (bigOffset `mod` length xs) xs
+    it "finite list, huge negative offset" $
+        rotate (-bigOffset) xs
+            `shouldBe` rotate ((-bigOffset) `mod` length xs) xs

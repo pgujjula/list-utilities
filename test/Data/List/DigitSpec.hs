@@ -20,26 +20,26 @@ digits = [0..9]
 
 fromDigitsSpec :: Spec
 fromDigitsSpec = do
-    it "empty list, output type Int" $
-        fromDigits [] `shouldBe` (0 :: Int)
-    it "empty list, output type Integer" $
-        fromDigits [] `shouldBe` (0 :: Integer)
+    let hunitTest :: (Integral a, Show a)
+                  => Proxy a -> [Int] -> a -> Expectation
+        hunitTest _ xs n = fromDigits xs `shouldBe` n
 
-    let testDigits :: (Integral a, Show a) => [a] -> Expectation
-        testDigits ds = forM_ ds $ \x ->
-            fromDigits [fromIntegral x] `shouldBe` x
-    it "single-digit inputs, output type Int" $
-        testDigits (digits :: [Int])
-    it "single-digit inputs, output type Integer" $
-        testDigits (digits :: [Integer])
+        int = Proxy :: Proxy Int
+        integer = Proxy :: Proxy Integer
+    it "empty list, output type Int" $ hunitTest int [] 0
+    it "empty list, output type Integer" $ hunitTest integer [] 0
+
+    let testDigits :: (Integral a, Show a) => Proxy a -> [a] -> Expectation
+        testDigits proxy ds = forM_ ds $ \x ->
+            hunitTest proxy [fromIntegral x] x
+    it "single-digit inputs, output type Int" $ testDigits int digits
+    it "single-digit inputs, output type Integer" $ testDigits integer digits
 
     let naive :: (Integral a, Read a) => [Int] -> a
         naive = read . concatMap show . (0:)
 
-        test :: forall a. (Integral a, Read a)
-             => Proxy a -> [Int] -> Property
-        test _ xs =
-            toInteger (fromDigits xs :: a) === (naive xs :: Integer)
+        qcTest :: forall a. (Integral a, Read a) => Proxy a -> [Int] -> Property
+        qcTest _ xs = toInteger (fromDigits xs :: a) === (naive xs :: Integer)
 
         digitListGen :: Gen [Int]
         digitListGen = listOf (elements digits)
@@ -50,18 +50,17 @@ fromDigitsSpec = do
           where
             overflow xs = (naive xs :: Integer) > toInteger (maxBound :: Int)
     it "arbitrary inputs, output type Int" $
-        forAll smallListGen (test (Proxy :: Proxy Int))
+        forAll smallListGen (qcTest int)
     it "arbitrary inputs, output type Integer" $
-        forAll digitListGen (test (Proxy :: Proxy Integer))
+        forAll digitListGen (qcTest integer)
 
 toDigitsSpec :: Spec
 toDigitsSpec = do
     let testDigits :: (Integral a) => [a] -> Expectation
-        testDigits ds = forM_ ds $ \x ->
-            toDigits x `shouldBe` [fromIntegral x]
+        testDigits ds = forM_ ds $ \x -> toDigits x `shouldBe` [fromIntegral x]
     it "single-digit Ints"     $ testDigits (digits :: [Int])
     it "single-digit Integers" $ testDigits (digits :: [Integer])
-    it "double digits"         $ toDigits 34 `shouldBe` [3, 4]
+    it "three digits"         $ toDigits 345 `shouldBe` [3, 4, 5]
 
     let naive :: (Integral a, Show a) => a -> [Int]
         naive = map (read . (:[])) . show

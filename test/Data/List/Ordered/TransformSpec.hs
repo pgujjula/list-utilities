@@ -54,12 +54,14 @@ mergeSpec = do
         merge [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "finite lists" $
         merge [1, 2, 3] [1, 3, 5] `shouldBe` [1, 1, 2, 3, 3, 5]
+    it "infinite lists" $
+        trunc (merge [2, 4..] [1, 3..]) `shouldBe` trunc [1..]
 
-    it "arbitrary finite lists with lots of repeats" $
+    it "arbitrary finite lists with many repeats" $
         let gen = sortedGenWith defaultConfig {repeatedness = Repeated}
          in forAll (pairOf gen) $ \(xs, ys) ->
                 merge xs ys === sort (xs ++ ys)
-    it "arbitrary infinite lists with lots of repeats" $
+    it "arbitrary infinite lists with many repeats" $
         let gen = sortedGenWith defaultConfig { repeatedness = Repeated
                                               , finiteness = Infinite}
          in forAllInfinite (pairOf gen) $ \(xs, ys) ->
@@ -76,7 +78,7 @@ mergeBySpec = do
     it "finite lists" $ do
         let cmp = comparing Down
         mergeBy cmp [3, 2, 1] [5, 3, 1] `shouldBe` [5, 3, 3, 2, 1, 1]
-    it "left side is preferred on ties" $
+    it "left side preferred" $
         let xs = map ("x",) [1, 3, 4, 4, 5]
             ys = map ("y",) [1, 3, 3, 4, 5]
             zs = [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
@@ -91,18 +93,21 @@ diffSpec = do
         diff [] undefined `shouldBe` ([] :: [()])
     it "right empty" $
         diff [1, 2, 3] [] `shouldBe` [1, 2, 3]
-    it "arbitrary finite lists" $
-        forAll (pairOf sortedGen) $ \(xs, ys) ->
-            diff xs ys `shouldBe` (xs \\ ys)
-    -- too hard to construct arbitrary infinite lists test.
-    -- simplest way to determine a prefix of the difference of two infinite
-    -- lists is to construct the diff algorithm itself. So we settle for a
-    -- hand-made unit test.
+    it "finite lists" $
+        diff [3, 4, 4, 4, 4, 5, 5] [3, 4, 4, 5, 6] `shouldBe` [4, 4, 5]
     it "infinite lists" $
         let xs = [1..]
             ys = map (^2) [1..]
             square x = any (\t -> t^2 == x) [1..x]
          in filter (not . square) xs `shouldStartWith` trunc (diff xs ys)
+
+    it "arbitrary finite lists" $
+        forAll (pairOf sortedGen) $ \(xs, ys) ->
+            diff xs ys `shouldBe` (xs \\ ys)
+    -- It's too hard to construct an arbitrary infinite lists test. The simplest
+    -- way to determine a prefix of the difference of two infinite lists is
+    -- probably to construct the diff algorithm itself. So we settle for a hand-
+    -- written unit test for that case.
 
 diffBySpec :: Spec
 diffBySpec = do
@@ -112,7 +117,7 @@ diffBySpec = do
         diffBy undefined [] undefined `shouldBe` ([] :: [()])
     it "right empty" $
         diffBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
-    it "finite list" $
+    it "finite lists" $
         diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
 
 intersectSpec :: Spec
@@ -123,14 +128,19 @@ intersectSpec = do
         intersect [] [1, 2, 3] `shouldBe` []
     it "right empty" $
         intersect [1, 2, 3] [] `shouldBe` []
+    it "finite lists" $
+        intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7] `shouldBe`
+            [2, 3, 3, 5]
+    it "infinite lists" $
+        let xs = map (^2) [1..]
+            ys = map (^3) [1..]
+            zs = map (^6) [1..]
+         in trunc (intersect xs ys) `shouldBe` trunc zs
 
-    -- since the Data.List implementation of intersect doesn't have the multiset
+    -- Since the Data.List implementation of intersect doesn't have the multiset
     -- semantics of this impelementation, we can't use it as a reference for
     -- auto-generated QuickCheck tests. Implementing a "naive" intersect is also
     -- difficult. So we settle for hand-written unit tests.
-    it "finite list" $
-        intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7] `shouldBe`
-            [2, 3, 3, 5]
 
 intersectBySpec :: Spec
 intersectBySpec = do
@@ -140,7 +150,7 @@ intersectBySpec = do
         intersectBy undefined [] [1, 2, 3] `shouldBe` []
     it "right empty" $
         intersectBy undefined [1, 2, 3] [] `shouldBe` []
-    it "finite list" $
+    it "finite lists" $
         intersectBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 1]
     it "left side preferred" $
         let xs = map ("x",) [1, 2, 3, 4]
@@ -156,8 +166,16 @@ unionSpec = do
         union [] [1, 2, 3] `shouldBe` [1, 2, 3]
     it "right empty" $
         union [1, 2, 3] [] `shouldBe` [1, 2, 3]
-    it "finite list" $
+    it "finite lists" $
         union [1, 3, 3, 4, 5] [2, 3, 5, 7] `shouldBe` [1, 2, 3, 3, 4, 5, 7]
+    it "infinite lists" $
+        let xs = filter (\t -> t `rem` 4 == 1) [1..]
+            ys = filter (\t -> t `rem` 4 == 3) [1..]
+            zs = filter odd [1..]
+         in trunc (union xs ys) `shouldBe` trunc zs
+
+    -- The same problem with intersect (described above) means that its hard to
+    -- make QuickCheck tests, so we leave it at hand-written unit tests.
 
 unionBySpec :: Spec
 unionBySpec = do
@@ -167,7 +185,7 @@ unionBySpec = do
         unionBy undefined [] [1, 2, 3] `shouldBe` [1, 2, 3]
     it "right empty" $
         unionBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
-    it "finite list" $
+    it "finite lists" $
         unionBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 2, 1, 0]
     it "left side preferred" $
         let xs = map ("x",) [1, 2, 3, 4]
@@ -217,7 +235,7 @@ mergeManySpec = do
         hunitTest $ products [1..] [1, 2, 3]
     it "infinite list of infinite lists" $
         hunitTest $ products [1..] [1..]
-    it "raggedly finite list" $
+    it "ragged finite list" $
         hunitTest [[], [], [1, 2, 3], [1, 2], [2, 5], [], [], [3, 3, 3, 4]]
 
     let qcTest :: (Ord a, Show a) => [[a]] -> Property
@@ -247,22 +265,13 @@ applyMergeSpec = do
     it "right empty" $
         applyMerge undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
 
-    let naive :: (Ord a) => (a -> a -> a) -> [a] -> [a] -> [a]
+    let naive :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
         naive op xs ys = trunc $ sort (op <$> trunc xs <*> trunc ys)
 
-        hunitTest :: (Ord a, Show a)
-                  => (a -> a -> a) -> [a] -> [a] -> Expectation
+        hunitTest :: (Show c, Ord c)
+                  => (a -> b -> c) -> [a] -> [b] -> Expectation
         hunitTest op xs ys =
             trunc (applyMerge op xs ys) `shouldBe` naive op xs ys
-
-        infiniteSortedGen :: Gen [Integer]
-        infiniteSortedGen = sortedGenWith defaultConfig {finiteness = Infinite}
-
-        qcTest :: (Ord a, Show a) => (a -> a -> a) -> ([a], [a]) -> Property
-        qcTest op (xs, ys) = trunc (applyMerge op xs ys) === naive op xs ys
-
-        testProduct :: (Ord a, Show a, Num a) => Gen [a] -> Gen [a] -> Property
-        testProduct g1 g2 = forAllInfinite ((,) <$> g1 <*> g2) (qcTest (*))
 
     it "both finite" $
         hunitTest (*) [2, 4, 8] [3, 6, 9]
@@ -272,6 +281,16 @@ applyMergeSpec = do
         hunitTest (*) [1, 2, 3] [1..3]
     it "left finite, right infinite" $
         hunitTest (*) [1..] [1..]
+    it "unequal types" $ hunitTest take [1..] (map repeat ['a'..'z'])
+
+    let infiniteSortedGen :: Gen [Integer]
+        infiniteSortedGen = sortedGenWith defaultConfig {finiteness = Infinite}
+
+        qcTest :: (Ord c, Show c) => (a -> b -> c) -> ([a], [b]) -> Property
+        qcTest op (xs, ys) = trunc (applyMerge op xs ys) === naive op xs ys
+
+        testProduct :: (Ord a, Show a, Num a) => Gen [a] -> Gen [a] -> Property
+        testProduct g1 g2 = forAllInfinite ((,) <$> g1 <*> g2) (qcTest (*))
 
     it "arbitrary finite, finite" $
         testProduct sortedGen sortedGen

@@ -28,11 +28,10 @@ fromDigitsSpec = do
     let testDigits :: (Integral a, Show a) => [a] -> Expectation
         testDigits ds = forM_ ds $ \x ->
             fromDigits [fromIntegral x] `shouldBe` x
-     in do
-        it "single-digit inputs, output type Int" $
-            testDigits (digits :: [Int])
-        it "single-digit inputs, output type Integer" $
-            testDigits (digits :: [Integer])
+    it "single-digit inputs, output type Int" $
+        testDigits (digits :: [Int])
+    it "single-digit inputs, output type Integer" $
+        testDigits (digits :: [Integer])
 
     let naive :: (Integral a, Show a, Read a) => [Int] -> a
         naive = read . concatMap show . (0:)
@@ -50,29 +49,26 @@ fromDigitsSpec = do
         smallListGen = digitListGen `suchThat` (not . overflow)
           where
             overflow xs = (naive xs :: Integer) > toInteger (maxBound :: Int)
-     in do
-        it "arbitrary inputs, output type Int" $
-            forAll smallListGen (test (Proxy :: Proxy Int))
-        it "arbitrary inputs, output type Integer" $
-            forAll digitListGen (test (Proxy :: Proxy Integer))
+    it "arbitrary inputs, output type Int" $
+        forAll smallListGen (test (Proxy :: Proxy Int))
+    it "arbitrary inputs, output type Integer" $
+        forAll digitListGen (test (Proxy :: Proxy Integer))
 
 toDigitsSpec :: Spec
 toDigitsSpec = do
     let testDigits :: (Integral a) => [a] -> Expectation
         testDigits ds = forM_ ds $ \x ->
             toDigits x `shouldBe` [fromIntegral x]
-     in do
-        it "single-digit Ints"     $ testDigits (digits :: [Int])
-        it "single-digit Integers" $ testDigits (digits :: [Integer])
-        it "double digits"         $ toDigits 34 `shouldBe` [3, 4]
+    it "single-digit Ints"     $ testDigits (digits :: [Int])
+    it "single-digit Integers" $ testDigits (digits :: [Integer])
+    it "double digits"         $ toDigits 34 `shouldBe` [3, 4]
 
     let naive :: (Integral a, Show a) => a -> [Int]
         naive = map (read . (:[])) . show
 
         test :: (Integral a, Show a) => a -> Property
         test x = toDigits x === naive x
-     in do
-        it "arbitrary length Int" $
-            forAll (arbitrary `suchThat` (>= 0) :: Gen Int) test
-        it "arbitrary length Integer" $
-            forAll (arbitrary `suchThat` (>= 0) :: Gen Integer) test
+    it "arbitrary length Int" $
+        forAll (arbitrary `suchThat` (>= 0) :: Gen Int) test
+    it "arbitrary length Integer" $
+        forAll (arbitrary `suchThat` (>= 0) :: Gen Integer) test

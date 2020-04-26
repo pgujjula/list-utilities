@@ -62,8 +62,8 @@ allEqualBySpec = do
 
 sortedSpec :: Spec
 sortedSpec = do
-    it "empty" $ sorted ([] :: [Int]) `shouldBe` True
-    it "singleton" $ sorted [3 :: Int] `shouldBe` True
+    it "empty" $ sorted ([] :: [()]) `shouldBe` True
+    it "singleton" $ sorted [3] `shouldBe` True
     it "finite list, sorted" $
         sorted [2, 4..10] `shouldBe` True
     it "finite list, not sorted" $
@@ -173,9 +173,9 @@ ascSequentialSpec = do
 descSequentialSpec :: Spec
 descSequentialSpec = do
     it "empty list" $
-        descSequential ([] :: [Int]) `shouldBe` True
+        descSequential ([] :: [()]) `shouldBe` True
     it "singleton list" $
-        descSequential ([] :: [Int]) `shouldBe` True
+        descSequential [1] `shouldBe` True
     it "finite list, descending" $
         descSequential [10, 9..1] `shouldBe` True
     it "finite list, not ascending" $ do
@@ -214,8 +214,7 @@ palindromeSpec = do
 
         nonPalindromeGen :: Gen String
         nonPalindromeGen = listOf arbitrary `suchThat` (not . naive) :: Gen String
-     in do
-        it "arbitrary palindromes" $
-            forAll palindromeGen palindrome
-        it "arbitrary non-palindromes" $
-            forAll nonPalindromeGen (not . palindrome)
+    it "arbitrary palindromes" $
+        forAll palindromeGen palindrome
+    it "arbitrary non-palindromes" $
+        forAll nonPalindromeGen (not . palindrome)

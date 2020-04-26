@@ -77,7 +77,7 @@ mergeBySpec = do
         let cmp = comparing Down
         mergeBy cmp [3, 2, 1] [5, 3, 1] `shouldBe` [5, 3, 3, 2, 1, 1]
     it "left side is preferred on ties" $
-        let xs = map ("x",) [1, 3, 4, 4, 5] :: [(String, Int)]
+        let xs = map ("x",) [1, 3, 4, 4, 5]
             ys = map ("y",) [1, 3, 3, 4, 5]
             zs = [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
                   ("x", 4), ("x", 4), ("y", 4), ("x", 5), ("y", 5)]
@@ -86,11 +86,11 @@ mergeBySpec = do
 diffSpec :: Spec
 diffSpec = do
     it "both empty" $
-        diff [] [] `shouldBe` ([] :: [Int])
+        diff [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        diff [] undefined `shouldBe` ([] :: [Int])
+        diff [] undefined `shouldBe` ([] :: [()])
     it "right empty" $
-        diff [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+        diff [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "arbitrary finite lists" $
         forAll (pairOf sortedGen) $ \(xs, ys) ->
             diff xs ys `shouldBe` (xs \\ ys)
@@ -118,11 +118,11 @@ diffBySpec = do
 intersectSpec :: Spec
 intersectSpec = do
     it "both empty" $
-        intersect [] [] `shouldBe` ([] :: [Int])
+        intersect [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        intersect [] [1, 2, 3] `shouldBe` ([] :: [Int])
+        intersect [] [1, 2, 3] `shouldBe` []
     it "right empty" $
-        intersect [1, 2, 3] [] `shouldBe` ([] :: [Int])
+        intersect [1, 2, 3] [] `shouldBe` []
 
     -- since the Data.List implementation of intersect doesn't have the multiset
     -- semantics of this impelementation, we can't use it as a reference for
@@ -135,11 +135,11 @@ intersectSpec = do
 intersectBySpec :: Spec
 intersectBySpec = do
     it "both empty" $
-        intersectBy undefined [] [] `shouldBe` ([] :: [Int])
+        intersectBy undefined [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        intersectBy undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
+        intersectBy undefined [] [1, 2, 3] `shouldBe` []
     it "right empty" $
-        intersectBy undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
+        intersectBy undefined [1, 2, 3] [] `shouldBe` []
     it "finite list" $
         intersectBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 1]
     it "left side preferred" $
@@ -151,22 +151,22 @@ intersectBySpec = do
 unionSpec :: Spec
 unionSpec = do
     it "both empty" $
-        union [] [] `shouldBe` ([] :: [Int])
+        union [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        union [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
+        union [] [1, 2, 3] `shouldBe` [1, 2, 3]
     it "right empty" $
-        union [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+        union [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "finite list" $
         union [1, 3, 3, 4, 5] [2, 3, 5, 7] `shouldBe` [1, 2, 3, 3, 4, 5, 7]
 
 unionBySpec :: Spec
 unionBySpec = do
     it "both empty" $
-        unionBy undefined [] [] `shouldBe` ([] :: [Int])
+        unionBy undefined [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        unionBy undefined [] [1, 2, 3] `shouldBe` ([1, 2, 3] :: [Int])
+        unionBy undefined [] [1, 2, 3] `shouldBe` [1, 2, 3]
     it "right empty" $
-        unionBy undefined [1, 2, 3] [] `shouldBe` ([1, 2, 3] :: [Int])
+        unionBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "finite list" $
         unionBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 2, 1, 0]
     it "left side preferred" $
@@ -239,11 +239,11 @@ mergeManySpec = do
 applyMergeSpec :: Spec
 applyMergeSpec = do
     it "both empty" $
-        applyMerge undefined [] [] `shouldBe` ([] :: [Int])
+        applyMerge undefined [] [] `shouldBe` ([] :: [()])
     it "left empty" $
-        applyMerge undefined [] [1, 2, 3] `shouldBe` ([] :: [Int])
+        applyMerge undefined [] [1, 2, 3] `shouldBe` []
     it "right empty" $
-        applyMerge undefined [1, 2, 3] [] `shouldBe` ([] :: [Int])
+        applyMerge undefined [1, 2, 3] [] `shouldBe` []
 
     let naive :: (Ord a) => (a -> a -> a) -> [a] -> [a] -> [a]
         naive op xs ys = trunc $ sort (op <$> trunc xs <*> trunc ys)

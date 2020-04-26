@@ -50,7 +50,7 @@ takeEverySpec = do
     it "n = 3, empty list" $
         takeEvery 3 ([] :: [()]) `shouldBe` []
     it "n = 3, finite list" $
-        takeEvery 3 [1..10] `shouldBe` ([3, 6, 9] :: [Int])
+        takeEvery 3 [1..10] `shouldBe` [3, 6, 9]
     it "n = 3, prefix of infinite list" $
         take 10 (takeEvery 3 [1..]) `shouldBe` take 10 [3, 6..]
 
@@ -199,9 +199,9 @@ deleteDupsBySpec = do
 deleteAdjDupsSpec :: Spec
 deleteAdjDupsSpec = do
     it "empty list" $
-        deleteDups [] `shouldBe` ([] :: [Int])
+        deleteDups [] `shouldBe` ([] :: [()])
     it "singleton list" $
-        deleteDups [1] `shouldBe` ([1] :: [Int])
+        deleteDups [1] `shouldBe` [1]
     it "arbitrary finite lists" $ do
         let gen = sortedGenWith defaultConfig {repeatedness = Repeated}
         forAll gen $ \xs -> deleteAdjDups xs === sort (nub xs)
@@ -218,9 +218,9 @@ deleteAdjDupsSpec = do
 deleteAdjDupsBySpec :: Spec
 deleteAdjDupsBySpec = do
     it "empty list" $
-        deleteDupsBy undefined [] `shouldBe` ([] :: [Int])
+        deleteDupsBy undefined [] `shouldBe` ([] :: [()])
     it "singleton list" $
-        deleteDupsBy undefined [1] `shouldBe` ([1] :: [Int])
+        deleteDupsBy undefined [1] `shouldBe` [1]
     it "arbitrary finite lists" $ do
         let gen = sortBy cmp <$> listOf (arbitrary :: Gen Integer)
             cmp = comparing (`rem` 10)

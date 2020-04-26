@@ -178,13 +178,13 @@ descSequentialSpec = do
         descSequential [1] `shouldBe` True
     it "finite list, descending" $
         descSequential [10, 9..1] `shouldBe` True
-    it "finite list, not ascending" $ do
+    it "finite list, not descending" $ do
         descSequential ([10, 9..6] ++ [6] ++ [undefined] ++ [5, 4..1])
             `shouldBe` False
         descSequential ([10, 9..6] ++ [7] ++ [undefined] ++ [5, 4..1])
             `shouldBe` False
-    it "infinite list, not ascending" $
-        descSequential ([0, -1..(-10)] ++ [-9] ++ [undefined] ++ [-9, -8..])
+    it "infinite list, not descending" $
+        descSequential ([0, -1..(-10)] ++ [-10] ++ [undefined] ++ [-9, -8..])
             `shouldBe` False
 
 palindromeSpec :: Spec

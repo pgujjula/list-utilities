@@ -151,7 +151,7 @@ allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 -}
 ascSequential :: (Enum a) => [a] -> Bool
 ascSequential []  = True
-ascSequential [x] = True
+ascSequential [_] = True
 ascSequential xs  = and $ zipWith (==) xs' [head xs' ..]
   where
     xs' = map fromEnum xs
@@ -169,7 +169,7 @@ ascSequential xs  = and $ zipWith (==) xs' [head xs' ..]
 -}
 descSequential :: (Enum a) => [a] -> Bool
 descSequential []  = True
-descSequential [x] = True
+descSequential [_] = True
 descSequential xs  = and $ zipWith (==) xs' [x, x - 1 ..]
   where
     xs' = map fromEnum xs

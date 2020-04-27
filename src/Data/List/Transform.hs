@@ -44,9 +44,9 @@ import Data.Maybe    (fromMaybe)
 -}
 takeEvery :: Int -> [a] -> [a]
 takeEvery step xs = compute validated
-  where compute xs = case drop (step - 1) xs of
-                         []     -> []
-                         (y:ys) -> y : compute ys
+  where compute ys = case drop (step - 1) ys of
+                         []    -> []
+                         y:ys' -> y : compute ys'
         validated
           | step > 0  = xs
           | otherwise = error $ "Data.List.Transform.takeEvery: Step parameter "

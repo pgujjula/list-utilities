@@ -84,7 +84,8 @@ dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil _ []     = []
 dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 
-{-| /O(n log(n))./ Group the equal elements of the list together, in sorted order. 
+{-| /O(n log(n))./ Group the equal elements of the list together, in sorted
+    order.
 
     >>> group [1, 3, 2, 3, 2, 3]
     [[1], [2, 2], [3, 3, 3]]
@@ -96,9 +97,9 @@ dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 group :: (Ord a) => [a] -> [[a]]
 group = groupAdj . sort
 
-{-| /O(n log(n))./ Like 'group', with a custom comparison test. The grouping is stable, so
-    if @x@, @y@ are in the same group, and @x@ appears before @y@ in the
-    original list, then @x@ appears before @y@ in the group.
+{-| /O(n log(n))./ Like 'group', with a custom comparison test. The grouping is
+    stable, so if @x@, @y@ are in the same group, and @x@ appears before @y@ in
+    the original list, then @x@ appears before @y@ in the group.
 
     >>> groupBy (comparing head) ["b1", "c1", "a1", "b2", "a2"]
     [["a1", "a2"], ["b1", "b2"], ["c1"]]
@@ -146,7 +147,8 @@ groupAdjBy eq = foldr f []
 deleteDups :: (Ord a) => [a] -> [a]
 deleteDups = deleteAdjDups . sort
 
-{-| /O(n log(n))./ Like 'deleteDups', with a custom comparison test. First appearances are kept.
+{-| /O(n log(n))./ Like 'deleteDups', with a custom comparison test. First
+    appearances are kept.
 
     >>> deleteDupsBy (comparing head) ["a1", "c1", "d1", "a2", "b1"]
     ["a1", "b1", "c1", "d1"]

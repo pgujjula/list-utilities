@@ -178,23 +178,20 @@ unionBy cmp (x:xs) (y:ys) =
 --        \
 --         ...
 -- We denote a value along with its children as a Segment. There are two kinds
--- of Segments: Trees and Branches,
--- and every Segment has a root node, and maybe some Segments as children. For
--- example, in the structure above,
--- the 1 is rooting a Tree, while the 2 on its right is rooting a Branch. The 2
--- below is rooting another Tree.
+-- of Segments: Trees and Branches, and every Segment has a root node, and maybe
+-- some Segments as children. For example, in the structure above, the 1 is
+-- rooting a Tree, while the 2 on its right is rooting a Branch. The 2 below is
+-- rooting another Tree.
 --
 -- It's clear a Tree has at most one Tree and one Branch as children, while a
--- Branch has at most another Branch
--- as a child.
+-- Branch has at most another Branch as a child.
 --
 -- To generate all the values in the structure in sorted order, we maintain a
--- priority queue of all unprocessed
--- Segments, prioritied by their root node. The queue is initialized with a
--- single Tree, representing the entire
+-- priority queue of all unprocessed Segments, prioritied by their root node.
+-- The queue is initialized with a single Tree, representing the entire
 -- structure. To generate an element, we pop the minimum Segment, yield the root
--- node, and reinsert the children.
--- If the queue becomes empty, we have yielded the entire list, so we stop.
+-- node, and reinsert the children. If the queue becomes empty, we have yielded
+-- the entire list, so we stop.
 
 data Segment a = Branch (NonEmpty a)
                | Tree (NonEmpty (NonEmpty a))
@@ -209,13 +206,14 @@ children (Branch (_ :| xs)) = catMaybes [Branch <$> nonEmpty xs]
 children (Tree ((_ :| xs) :| xss)) =
     catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
 
-{-| Merge a list of lists. Works with infinite lists of infinite lists.
-
-    __Preconditions:__ Each list must be ordered, and the list of lists must be
-    ordered by first element.
+{-| Merge a list of lists. Works with infinite lists of infinite lists. Each
+    list must be ordered, and the first elements of the list of lists must be
+    ordered.
 
     __Stability:__ No guarantees are made regarding stability. Equal elements may
     be returned in any relative order.
+
+    __Performance note:__
 
     >>> take 10 $ mergeMany $ map (\x -> [x..]) [1..]
     [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
@@ -243,17 +241,52 @@ mergeMany xss =
                   -> MinPQueue a (Segment a)
     insertSegment queue segment = PQueue.insert (getRoot segment) segment queue
 
--- TODO: Improve this explanation.
-{-| Given a binary operation `op` and sorted lists xs, ys, @applyMerge op xs ys@
-    yields in sorted order, [z | z = x*y, x <- xs, y <- ys]. Works even if xs,
-    ys are infinite.
+{-| /O(n log(n))./ Given a binary operation @op@ and sorted lists @xs@, @ys@,
+    @applyMerge op xs ys@  yields in sorted order, the list
 
-    __Preconditions:__ Each list must be sorted, and the operation must be
-    non-decreasing in both arguments. That is,
-     * x1 >= x2 => op x1 y >= op x2 y
-     * y1 >= y2 => op x y1 >= op x y2
+    @[z | z = op x y, x <- xs, y <- ys]@
 
-    __Stability:__ No guarantees are made regarding stability. Equal elements may be returned in any relative order.
+    It works even if @xs@, @ys@ are infinite.
+
+    __Preconditions:__ Each list must be sorted, and @op@ must be non-decreasing
+    in both arguments restricted to @xs@ and @ys@. That is,
+
+     * For all @x1, x2, y@, if @x1@ appears before @x2@ in @xs@ and @y@ is in
+       @ys@, then @op x1 y <= op x2 y@.
+     * For all @y1, y2, x@, if @y1@ appears before @y2@ in @ys@ and @x@ is in
+       @xs@, then @op x y1 <= op x y2@.
+
+    These preconditions seem complicated, because they are the barebones
+    conditions for using this function. In the most common use case, @xs@ and
+    @ys@ will be sorted lists of numbers, and @op@ will be non-decreasing in
+    both arguments (something like @(+)@ or @(*)@).
+
+    __Stability:__ No guarantees are made regarding stability. Equal elements
+    may be returned in any relative order.
+
+    __Performance note:__ If @op x y@ changes much more if
+    @x@ moves along @xs@ than if @y@ moves along @ys@, then
+    @applyMerge op xs ys@ will be faster than @applyMerge (flip op) ys xs@.
+    This is an inevitable fact of the asymmetric implementation and may be fixed
+    in later versions. /Example 2/ is a specific example of this phenomenon.
+
+    /Example 1./ Generating 3-smooth numbers (numbers whose prime factors are
+    less than or equal to 3):
+
+    >>> powersOf2 = iterate (*2) 1
+    >>> powersOf3 = iterate (*3) 1
+    >>> smooth = applyMerge (*) powersOf2 powersOf3
+    >>> take 10 smooth
+    [1,2,3,4,6,8,9,12,16,18]
+
+    /Example 2./ Speed comparison
+
+    >>> ones = [1..]
+    >>> thousands = [1000, 2000..]
+    >>> sums1 = applyMerge (+) ones thousands
+    >>> sums2 = applyMerge (+) thousands ones
+
+    @sums2@ will be generated much faster than @sums1@.
 -}
 applyMerge :: (Ord c) => (a -> b -> c) -> [a] -> [b] -> [c]
 applyMerge op xs ys = mergeMany $ map (\x -> map (op x) ys) xs

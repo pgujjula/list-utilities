@@ -53,7 +53,7 @@ merge = mergeBy compare
 
     __Stability:__ The left side is preferred on ties.
 
-    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let xs = ["a1", "a2",       "b1"      ]
     >>> let ys = ["a3", "a4", "a5",       "c1"]
     >>> mergeBy (comparing head) xs ys
     ["a1", "a2", "a3", "a4", "a5", "b1", "c1"]
@@ -82,7 +82,7 @@ diff = diffBy compare
     class @n@, and the right side has @y@, then the last @max(x - y, 0)@
     representatives from the left side used for @n@ in the output.
 
-    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let xs = ["a1", "a2",       "b1"      ]
     >>> let ys = ["a3", "a4", "a5",       "c1"]
     >>> diffBy (comparing head) xs ys
     ["b1"]
@@ -114,7 +114,7 @@ intersect = intersectBy compare
     class @n@, and the right side has @y@, then the first @min(x, y)@
     representatives from the left side are used for @n@ in the output.
 
-    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let xs = ["a1", "a2",       "b1"      ]
     >>> let ys = ["a3", "a4", "a5",       "c1"]
     >>> intersectBy (comparing head) xs ys
     ["a1", "a2"]
@@ -146,7 +146,7 @@ union = unionBy compare
      * If @x < y@, then the first @x@ representatives from the left and __last__
        @y - x@ representatives from the right will be used.
 
-    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let xs = ["a1", "a2",       "b1"      ]
     >>> let ys = ["a3", "a4", "a5",       "c1"]
     >>> unionBy (comparing head) xs ys
     ["a1", "a2", "a5", "b1", "c1"]

@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 module Data.List.Ordered.TransformSpec (spec) where
 
 import Control.Arrow               ((>>>))
@@ -79,11 +78,10 @@ mergeBySpec = do
         let cmp = comparing Down
         mergeBy cmp [3, 2, 1] [5, 3, 1] `shouldBe` [5, 3, 3, 2, 1, 1]
     it "left side preferred" $
-        let xs = map ("x",) [1, 3, 4, 4, 5]
-            ys = map ("y",) [1, 3, 3, 4, 5]
-            zs = [("x", 1), ("y", 1), ("x", 3), ("y", 3), ("y", 3),
-                  ("x", 4), ("x", 4), ("y", 4), ("x", 5), ("y", 5)]
-         in mergeBy (comparing snd) xs ys `shouldBe` zs
+        let xs = ["a1", "a2",       "b1"      ]
+            ys = ["a3", "a4", "a5",       "c1"]
+            zs = ["a1", "a2", "a3", "a4", "a5", "b1", "c1"]
+         in mergeBy (comparing head) xs ys `shouldBe` zs
 
 diffSpec :: Spec
 diffSpec = do
@@ -119,6 +117,11 @@ diffBySpec = do
         diffBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "finite lists" $
         diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
+    it "later elements preferred" $
+        let xs = ["a1", "a2",       "b1"      ]
+            ys = ["a3", "a4", "a5",       "c1"]
+            zs = ["a5", "c1"]
+         in diffBy (comparing head) ys xs `shouldBe` zs
 
 intersectSpec :: Spec
 intersectSpec = do
@@ -153,10 +156,10 @@ intersectBySpec = do
     it "finite lists" $
         intersectBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 1]
     it "left side preferred" $
-        let xs = map ("x",) [1, 2, 3, 4]
-            ys = map ("y",) [1, 2, 3, 5]
-            zs = map ("x",) [1, 2, 3]
-         in intersectBy (comparing snd) xs ys `shouldBe` zs
+        let xs = ["a1", "a2",       "b1"      ]
+            ys = ["a3", "a4", "a5",       "c1"]
+            zs = ["a1", "a2"]
+         in intersectBy (comparing head) xs ys `shouldBe` zs
 
 unionSpec :: Spec
 unionSpec = do
@@ -188,10 +191,10 @@ unionBySpec = do
     it "finite lists" $
         unionBy (comparing Down) [3, 2, 1] [3, 1, 0] `shouldBe` [3, 2, 1, 0]
     it "left side preferred" $
-        let xs = map ("x",) [1, 2, 3, 4]
-            ys = map ("y",) [1, 2, 3, 5]
-            zs = [("x", 1), ("x", 2), ("x", 3), ("x", 4), ("y", 5)]
-         in unionBy (comparing snd) xs ys `shouldBe` zs
+        let xs = ["a1", "a2",       "b1"      ]
+            ys = ["a3", "a4", "a5",       "c1"]
+            zs = ["a1", "a2", "a5", "b1", "c1"]
+         in unionBy (comparing head) xs ys `shouldBe` zs
 
 togetherSpec :: Spec
 togetherSpec = it "x ∪ y == (x ∩ y) + (x - y) + (y - x)" $

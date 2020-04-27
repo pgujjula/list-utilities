@@ -34,7 +34,7 @@ fromDigits :: (Integral a) => [Int] -> a
 fromDigits = compute . validate
   where
     compute = fromInteger . read . map fromDigit . pad
-      where 
+      where
         fromDigit x = chr (x + ordZero)
         pad = (0 :)  -- for empty input lists
 

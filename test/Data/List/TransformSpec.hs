@@ -39,17 +39,23 @@ spec = do
 
     describe "rotate" rotateSpec
 
+empty :: [Integer]
+empty = []
+
+singletonUndef :: [Integer]
+singletonUndef = [undefined]
+
 takeEverySpec :: Spec
 takeEverySpec = do
     it "n = 1, empty list" $
-        takeEvery 1 ([] :: [()]) `shouldBe` []
+        takeEvery 1 empty `shouldBe` empty
     it "n = 1, finite list" $
         takeEvery 1 [1..10] `shouldBe` [1..10]
     it "n = 1, prefix of infinite list" $
         take 10 (takeEvery 1 [1..]) `shouldBe` take 10 [1..10]
 
     it "n = 3, empty list" $
-        takeEvery 3 ([] :: [()]) `shouldBe` []
+        takeEvery 3 empty `shouldBe` []
     it "n = 3, finite list" $
         takeEvery 3 [1..10] `shouldBe` [3, 6, 9]
     it "n = 3, prefix of infinite list" $
@@ -58,9 +64,9 @@ takeEverySpec = do
 takeUntilSpec :: Spec
 takeUntilSpec = do
     it "empty list, undefined function" $
-        takeUntil undefined [] `shouldBe` ([] :: [()])
+        takeUntil undefined empty `shouldBe` empty
     it "singleton list, undefined function" $
-        takeUntil undefined [3] `shouldBe` [3]
+        length (takeUntil undefined singletonUndef) `shouldBe` 1
     it "finite list, undefined function" $
         head (takeUntil undefined [1, 2, 3]) `shouldBe` 1
     it "finite list" $
@@ -75,7 +81,7 @@ takeUntilSpec = do
 dropUntilSpec :: Spec
 dropUntilSpec = do
     it "empty list, undefined function" $
-        dropUntil undefined [] `shouldBe` ([] :: [()])
+        dropUntil undefined empty `shouldBe` empty
     it "finite list" $
         dropUntil (== 5) [1..10] `shouldBe` [5..10]
     it "finite list, always True" $
@@ -88,9 +94,11 @@ dropUntilSpec = do
 groupSpec :: Spec
 groupSpec = do
     it "empty list" $
-        group ([] :: [()]) `shouldBe` []
-    it "singleton list" $
-        group [1] `shouldBe` [[1]]
+        group empty `shouldBe` []
+    it "singleton list" $ do
+        let xss = group singletonUndef
+        length xss `shouldBe` 1
+        length (head xss) `shouldBe` 1
     it "finite list" $
         group [1, 3, 2, 3, 2, 3] `shouldBe` [[1], [2, 2], [3, 3, 3]]
 
@@ -108,21 +116,24 @@ groupSpec = do
 
 groupBySpec :: Spec
 groupBySpec = do
-    let cmp :: (Ord a) => a -> a -> Ordering
-        cmp = comparing Down
     it "empty list" $
-        groupBy cmp ([] :: [()]) `shouldBe` []
-    it "singleton list" $
-        groupBy cmp [1] `shouldBe` [[1]]
+        groupBy undefined empty `shouldBe` []
+    it "singleton list" $ do
+        let xss = groupBy undefined singletonUndef
+        length xss `shouldBe` 1
+        length (head xss) `shouldBe` 1
     it "finite list" $
-        groupBy cmp [1, 3, 2, 3, 2, 3] `shouldBe` [[3, 3, 3], [2, 2], [1]]
+        groupBy (comparing Down) [1, 3, 2, 3, 2, 3]
+            `shouldBe` [[3, 3, 3], [2, 2], [1]]
 
 groupAdjSpec :: Spec
 groupAdjSpec = do
     it "empty list" $
-        groupAdj ([] :: [()]) `shouldBe` []
-    it "singleton list" $
-        groupAdj [1] `shouldBe` [[1]]
+        groupAdj empty `shouldBe` []
+    it "singleton list" $ do
+        let xss = groupAdj singletonUndef
+        length xss `shouldBe` 1
+        length (head xss) `shouldBe` 1
     it "finite list" $
         groupAdj [1, 3, 3, 3, 2, 2] `shouldBe` [[1], [3, 3, 3], [2, 2]]
     it "infinite list" $ do
@@ -152,13 +163,15 @@ groupAdjSpec = do
 
 groupAdjBySpec :: Spec
 groupAdjBySpec = do
-    let eq = (==) `on` head
     it "empty list" $
-        groupAdjBy eq ([] :: [String]) `shouldBe` []
-    it "singleton list" $
-        groupAdjBy eq ["abc"] `shouldBe` [["abc"]]
+        groupAdjBy undefined empty `shouldBe` []
+    it "singleton list" $ do
+        let xss = groupAdjBy undefined singletonUndef
+        length xss `shouldBe` 1
+        length (head xss) `shouldBe` 1
     it "finite list" $ do
-        let input = [ "apple", "at", "atom"
+        let eq = (==) `on` head
+            input = [ "apple", "at", "atom"
                     , "banana", "bot"
                     , "cat", "curry", "clip"]
             output = [ ["apple", "at", "atom"]
@@ -170,9 +183,9 @@ groupAdjBySpec = do
 deleteDupsSpec :: Spec
 deleteDupsSpec = do
     it "empty list" $
-        deleteDups [] `shouldBe` ([] :: [()])
+        deleteDups empty `shouldBe` empty
     it "singleton list" $
-        deleteDups [1] `shouldBe` [1]
+        length (deleteDups singletonUndef) `shouldBe` 1
     it "arbitrary finite lists" $
         forAll (listOf (choose (1 :: Int, 10))) $ \xs ->
             deleteDups xs === sort (nub xs)
@@ -180,9 +193,9 @@ deleteDupsSpec = do
 deleteDupsBySpec :: Spec
 deleteDupsBySpec = do
     it "empty list" $
-        deleteDupsBy undefined [] `shouldBe` ([] :: [()])
+        deleteDupsBy undefined empty `shouldBe` empty
     it "singleton list" $
-        deleteDupsBy undefined [1] `shouldBe` [1]
+        length (deleteDupsBy undefined singletonUndef) `shouldBe` 1
     it "finite list" $ do
         let cmp = comparing head
         deleteDupsBy cmp ["apple", "banana", "ant", "car", "chest", "boat"]
@@ -191,9 +204,9 @@ deleteDupsBySpec = do
 deleteAdjDupsSpec :: Spec
 deleteAdjDupsSpec = do
     it "empty list" $
-        deleteDups [] `shouldBe` ([] :: [()])
+        deleteAdjDups empty `shouldBe` empty
     it "singleton list" $
-        deleteDups [1] `shouldBe` [1]
+        length (deleteAdjDups singletonUndef) `shouldBe` 1
     it "arbitrary finite lists" $ do
         let gen = sortedGenWith defaultConfig {repeatedness = Repeated}
         forAll gen $ \xs -> deleteAdjDups xs === sort (nub xs)
@@ -209,9 +222,9 @@ deleteAdjDupsSpec = do
 deleteAdjDupsBySpec :: Spec
 deleteAdjDupsBySpec = do
     it "empty list" $
-        deleteDupsBy undefined [] `shouldBe` ([] :: [()])
+        deleteAdjDupsBy undefined empty `shouldBe` empty
     it "singleton list" $
-        deleteDupsBy undefined [1] `shouldBe` [1]
+        length (deleteAdjDupsBy undefined singletonUndef) `shouldBe` 1
     it "finite list" $ do
         let eq = (==) `on` fst
         deleteAdjDupsBy eq [("a", 3), ("b", 4), ("b", 2), ("c", 4), ("a", 2)]

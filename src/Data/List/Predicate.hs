@@ -130,9 +130,9 @@ allAdjUnique = allAdjUniqueBy (==)
 
 {-| /O(n)./ Like 'allAdjUnique', with a custom equality test.
 
-    >>> allAdjUniqueBy (comparing head) ["apple", "bow", "cat", "ant"]
+    >>> allAdjUniqueBy ((==) `on` head) ["apple", "bow", "cat", "ant"]
     True
-    >>> allAdjUniqueBy (comparing head) ["apple", "ant", "bow", "cat"]
+    >>> allAdjUniqueBy ((==) `on` head) ["apple", "ant", "bow", "cat"]
     False
 -}
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
@@ -144,13 +144,15 @@ allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
     True
     >>> ascSequential [1, 2, 3, 4, 8]
     False
-    >>> ascSequential []
+    >>> ascSequential ([] :: [Int])
     True
     >>> ascSequential [1]
     True
 -}
 ascSequential :: (Enum a) => [a] -> Bool
-ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
+ascSequential []  = True
+ascSequential [_] = True
+ascSequential xs  = and $ zipWith (==) xs' [head xs' ..]
   where
     xs' = map fromEnum xs
 
@@ -160,13 +162,15 @@ ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
     True
     >>> descSequential [5, 4, 3, 3, 1]
     False
-    >>> descSequential []
+    >>> descSequential ([] :: [Int])
     True
     >>> descSequential [1]
     True
 -}
 descSequential :: (Enum a) => [a] -> Bool
-descSequential xs = and $ zipWith (==) xs' [x, x - 1 ..]
+descSequential []  = True
+descSequential [_] = True
+descSequential xs  = and $ zipWith (==) xs' [x, x - 1 ..]
   where
     xs' = map fromEnum xs
     x   = head xs'

@@ -4,7 +4,8 @@ module Data.List.DigitSpec (spec) where
 import Control.Monad   (forM_)
 import Data.Proxy      (Proxy (Proxy))
 
-import Test.Hspec      (Expectation, Spec, describe, it, shouldBe)
+import Test.Hspec      (Expectation, Spec, anyErrorCall, describe, it, shouldBe,
+                        shouldThrow)
 import Test.QuickCheck (Gen, Property, arbitrary, elements, forAll, listOf,
                         suchThat, (===))
 
@@ -20,6 +21,10 @@ digits = [0..9]
 
 fromDigitsSpec :: Spec
 fromDigitsSpec = do
+    it "invalid input" $
+        (fromDigits [1, 2, -1, 0] `shouldBe` 0)
+            `shouldThrow` anyErrorCall
+
     let hunitTest :: (Integral a, Show a)
                   => Proxy a -> [Int] -> a -> Expectation
         hunitTest _ xs n = fromDigits xs `shouldBe` n
@@ -56,6 +61,10 @@ fromDigitsSpec = do
 
 toDigitsSpec :: Spec
 toDigitsSpec = do
+    it "invalid input" $
+        (toDigits (-12) `shouldBe` [1, 2])
+            `shouldThrow` anyErrorCall
+
     let testDigits :: (Integral a) => [a] -> Expectation
         testDigits ds = forM_ ds $ \x -> toDigits x `shouldBe` [fromIntegral x]
     it "single-digit Ints"     $ testDigits (digits :: [Int])

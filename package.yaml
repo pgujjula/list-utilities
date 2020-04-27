@@ -20,6 +20,19 @@ description:         Please see the README on GitHub at <https://github.com/pguj
 dependencies:
 - base >= 4.7 && < 5
 
+ghc-options:
+- -Wall
+- -Wcompat
+- -Wmissing-export-lists
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wpartial-fields
+- -Wmissing-home-modules
+- -Werror=missing-home-modules
+- -Widentities
+- -Wredundant-constraints
+- -Wmissing-export-lists
+
 library:
   source-dirs: src
   exposed-modules:
@@ -50,3 +63,6 @@ executables:
       - QuickCheck
       - random
       - tsil
+    ghc-options:
+    - -Wno-type-defaults
+    - -Wno-redundant-constraints

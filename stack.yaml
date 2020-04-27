@@ -1,8 +1,7 @@
-resolver: lts-14.27
+resolver: lts-15.9
 
 packages:
 - .
 
 ghc-options:
-  "$locals": -Wall -Wno-type-defaults 
   "$everything": -O2

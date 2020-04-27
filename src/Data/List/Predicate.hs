@@ -1,158 +1,200 @@
 {-| Module      : Data.List.Predicate
-    Description : Transform lists to other lists.
+    Description : Predicates on lists.
     Copyright   : (c) Preetham Gujjula, 2020
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-    Transform lists to other lists.
+Predicates (@True@/@False@ queries) on lists.
+
+The functions in this module are as lazy as possible. For example,
+@'sortedBy' undefined [undefined] == True@, since a list of one element must be
+sorted, no matter the comparison function, or the value of the element.
 -}
 module Data.List.Predicate
-  ( allEqual
+  ( -- * All equal
+    allEqual
   , allEqualBy
 
+   -- * Sortedness
   , sorted
   , sortedBy
 
+  -- * All unique
   , allUnique
   , allUniqueBy
   , allAdjUnique
   , allAdjUniqueBy
 
+  -- * Sequential
   , ascSequential
   , descSequential
 
+  -- * Miscellaneous
   , palindrome
   ) where
 
 import Data.List (sort, sortBy)
 
-{-| Whether all the elements in the list are equal.
-  
+{-| /O(n)./ Whether the elements are all equal.
+
     >>> allEqual [1..]
     False
     >>> allEqual [3, 3, 3, 3]
     True
     >>> allEqual []
     True
+    >>> allEqual [1]
+    True
 -}
 allEqual :: (Eq a) => [a] -> Bool
 allEqual = allEqualBy (==)
 
-{-| Like @allEqual@, with a custom equality test. @allEqual@ is as lazy as
-    possible, which means:
-      * allEqualBy _|_ [] == True
-      * allEqualBy _|_ (_|_:[]) == True
-      * allEqualBy _|_ (x1:x2:xs) == undefined
-  
-    >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 23]
+{-| /O(n)./ Like 'allEqual', with a custom equality test.
+
+    >>> allEqualBy ((==) `on` (`mod` 10)) [3, 13, 23]
     True
-    >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 24]
+    >>> allEqualBy ((==) `on` (`mod` 10)) [3, 13, 24]
     False
-    >>> allEqualBy undefined []
-    True
-    >>> allEqualBy undefined [3]
-    True
 -}
 allEqualBy :: (a -> a -> Bool) -> [a] -> Bool
-allEqualBy _ [] = True
-allEqualBy eq (x:xs) = all (eq x) xs
+allEqualBy _  []       = True
+allEqualBy eq (x : xs) = all (eq x) xs
 
-{-| Whether the elements are in sorted order. Laziness semantics:
-     * sorted _|_:[] == True
-    
+{-| /O(n)./ Whether the elements are in sorted order.
+
     >>> sorted [1, 2, 3, 3]
     True
     >>> sorted [1, 2, 3, 2]
     False
     >>> sorted []
     True
-    >>> sorted [x]
+    >>> sorted [1]
     True
 -}
 sorted :: (Ord a) => [a] -> Bool
 sorted = sortedBy compare
 
-{-| Like @sorted@, with a custom equality test. @sortedBy@ is as lazy as
-    possible, which means:
-      * sortedBy _|_ [] == True
-      * sortedBy _|_ (_|_:[]) == True
-      * sortedBy _|_ (x1:x2:xs) == undefined
+{-| /O(n)./ Like 'sorted', with a custom comparison test.
 
     >>> sortedBy (comparing Down) [3, 2, 1]
     True
-    >>> sorted (comparing Down) [3, 2, 1, 2]
+    >>> sortedBy (comparing Down) [3, 2, 1, 2]
     False
-    >>> sorted undefined []
-    True
-    >>> sorted undefined [undefined]
-    True
 -}
 sortedBy :: (a -> a -> Ordering) -> [a] -> Bool
-sortedBy _ [] = True
-sortedBy _ [_] = True
-sortedBy cmp xs = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
+sortedBy _   []  = True
+sortedBy _   [_] = True
+sortedBy cmp xs  = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 
+{-| /O(n log(n))./ Whether the elements are all unique.
+
+    >>> allUnique [1, 2, 5, 7]
+    True
+    >>> allUnique [1, 2, 5, 2]
+    False
+    >>> allUnique []
+    True
+    >>> allUnique [1]
+    True
+-}
 allUnique :: (Ord a) => [a] -> Bool
 allUnique = allAdjUnique . sort
 
-{-| Like @allUnique@, with a custom comparison test. -}
+{-| /O(n log(n))./ Like 'allUnique', with a custom comparison test.
+
+    >>> allUniqueBy (comparing head) ["apple", "bow", "cat"]
+    True
+    >>> allUniqueBy (comparing head) ["apple", "bow", "ant"]
+    False
+-}
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
 allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
-  where eq a b = cmp a b == EQ
+  where
+    eq a b = cmp a b == EQ
 
+{-| /O(n)./ Whether all adjacent pairs of elements are different. Useful for
+    determining whether a sorted list is all unique.
+
+    >>> allAdjUnique [1, 2, 3, 2]
+    True
+    >>> allAdjUnique [1, 2, 2, 3]
+    False
+    >>> allAdjUnique []
+    True
+    >>> allAdjUnique [1]
+    True
+-}
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
-{-| Like @allAdjUnique@, with a custom equality test. -}
+{-| /O(n)./ Like 'allAdjUnique', with a custom equality test.
+
+    >>> allAdjUniqueBy (comparing head) ["apple", "bow", "cat", "ant"]
+    True
+    >>> allAdjUniqueBy (comparing head) ["apple", "ant", "bow", "cat"]
+    False
+-}
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
-{-| Whether the list is increasing sequentially.
+{-| /O(n)./ Whether the list is increasing sequentially (one-by-one).
 
-    >>> ascSequential [1, 2, 3]
+    >>> ascSequential [1, 2, 3, 4, 5]
     True
-    >>> ascSequential [1, 2, 4]
+    >>> ascSequential [1, 2, 3, 4, 8]
     False
+    >>> ascSequential []
+    True
+    >>> ascSequential [1]
+    True
 -}
 ascSequential :: (Enum a) => [a] -> Bool
-ascSequential xs = and $ zipWith (==) xs' [head xs'..]
-  where xs' = map fromEnum xs
+ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
+  where
+    xs' = map fromEnum xs
 
-{-| Whether the list is descending sequentially.
+{-| /O(n)./ Whether the list is descending sequentially (one-by-one).
 
-    >>> descSequential [3, 2, 1]
+    >>> descSequential [5, 4, 3, 2, 1]
     True
-    >>> descSequential [3, 2, 2]
+    >>> descSequential [5, 4, 3, 3, 1]
     False
+    >>> descSequential []
+    True
+    >>> descSequential [1]
+    True
 -}
 descSequential :: (Enum a) => [a] -> Bool
-descSequential xs = and $ zipWith (==) xs' [x, x-1..]
-  where xs' = map fromEnum xs
-        x = head xs'
+descSequential xs = and $ zipWith (==) xs' [x, x - 1 ..]
+  where
+    xs' = map fromEnum xs
+    x   = head xs'
 
-{-| Whether the input is a palindrome, i.e., the same forwards and backwards.
+{-| /O(n)./ Whether the input is a palindrome, i.e., the same forwards and
+    backwards.
 
     >>> palindrome "rotor"
     True
     >>> palindrome "rover"
     False
-    >>> palindrome "a"
-    True
     >>> palindrome ""
+    True
+    >>> palindrome "a"
     True
 -}
 palindrome :: (Eq a) => [a] -> Bool
-palindrome xs = 
-  let (rev, len) = reverseLength xs
-   in and $ take (len `div` 2) $ zipWith (==) xs rev
+palindrome xs = and $ take (len `div` 2) $ zipWith (==) xs rev
+  where
+    (rev, len) = reverseLength xs
 
--- get the reverse and the length of a list in one pass
+-- Get the reverse and the length of a list in one pass.
 reverseLength :: [a] -> ([a], Int)
 reverseLength = reverseLengthWith [] 0
-  where -- accumulate the reverse and the length
-        reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
-        reverseLengthWith ys n [] = (ys, n)
-        reverseLengthWith ys n (x:xs) =
-          let n' = n + 1
-          in seq n' (reverseLengthWith (x:ys) n' xs)
+  where
+    -- Accumulate the reverse and the length.
+    reverseLengthWith :: [a] -> Int -> [a] -> ([a], Int)
+    reverseLengthWith ys n [] = (ys, n)
+    reverseLengthWith ys n (x : xs) =
+        let n' = n + 1
+         in seq n' (reverseLengthWith (x : ys) n' xs)

@@ -1,111 +1,73 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.List.DigitSpec (spec) where
 
-import Control.Monad         (forM_)
-import Data.Proxy            (Proxy (Proxy))
+import Control.Monad   (forM_)
+import Data.Proxy      (Proxy (Proxy))
 
-import System.Random         (Random)
-import Test.Hspec            (Expectation, Spec, describe, it, shouldBe)
-import Test.Hspec.QuickCheck (modifyMaxSuccess)
-import Test.QuickCheck       (Gen, Property, choose, elements, forAll, listOf,
-                              oneof, resize, sized, suchThat, (===))
+import Test.Hspec      (Expectation, Spec, describe, it, shouldBe)
+import Test.QuickCheck (Gen, Property, arbitrary, elements, forAll, listOf,
+                        suchThat, (===))
 
-import Data.List.Digit       (fromDigits, toDigits)
-
-numTests :: Int
-numTests = 1000
-
-maxNumDigits :: Int
-maxNumDigits = 50
+import Data.List.Digit (fromDigits, toDigits)
 
 spec :: Spec
-spec = modifyMaxSuccess (const numTests) $ do
-       describe "toDigits" toDigitsSpec
-       describe "fromDigits" fromDigitsSpec
+spec = do
+    describe "fromDigits" fromDigitsSpec
+    describe "toDigits" toDigitsSpec
 
-toDigitsSpec :: Spec
-toDigitsSpec = do
-  let testDigits :: (Integral a) => [a] -> Expectation
-      testDigits ds = forM_ ds $ \x ->
-        toDigits x `shouldBe` [fromIntegral x :: Int]
-
-   in do
-      it "single-digit Ints"
-        $ testDigits (digits :: [Int])
-      it "single-digit Integers"
-        $ testDigits (digits :: [Integer])
-
-  let naive :: (Integral a, Show a) => a -> [Int]
-      naive = map (read . (:[])) . show
-
-      testArbitrary :: (Integral a, Show a) => a -> Property
-      testArbitrary x = toDigits x === naive x
-   in do
-      it "arbitrary length Int"
-        $ forAll (uniformLengthIntGen `suchThat` (>= 0)) testArbitrary
-      it "arbitrary length Integer"
-        $ forAll (uniformLengthIntegerGen `suchThat` (>= 0)) testArbitrary
-
-fromDigitsSpec :: Spec
-fromDigitsSpec = do
-  it "empty list, output type Int"
-    $ fromDigits [] `shouldBe` (0 :: Int)
-  it "empty list, output type Integer"
-    $ fromDigits [] `shouldBe` (0 :: Integer)
-
-  let testDigits :: (Integral a, Show a) => [a] -> Expectation
-      testDigits ds = forM_ ds $ \x ->
-        fromDigits [fromIntegral x :: Int] `shouldBe` x
-
-   in do
-      it "single-digit inputs, output type Int"
-        $ testDigits (digits :: [Int])
-      it "single-digit inputs, output type Integer"
-        $ testDigits (digits :: [Integer])
-
-  let naive :: (Integral a, Show a, Read a) => [Int] -> a
-      naive = read . concatMap show . (0:)
-
-      testArbitrary :: forall a. (Integral a, Show a, Read a)
-                    => Proxy a -> [Int] -> Property
-      testArbitrary _ xs = toInteger (fromDigits xs :: a)
-                       === (naive xs :: Integer)
-
-      digitListGen :: Gen [Int]
-      digitListGen = resize maxNumDigits $ listOf $ elements digits
-
-      -- Lists that will not cause Int overflow
-      smallListGen :: Gen [Int]
-      smallListGen = digitListGen `suchThat` (not . overflow)
-        where overflow xs = (naive xs :: Integer) > toInteger (maxBound :: Int)
-   in do
-      it "arbitrary inputs, output type Int"
-        $ forAll smallListGen (testArbitrary (Proxy :: Proxy Int))
-      it "arbitrary inputs, output type Integer"
-        $ forAll digitListGen (testArbitrary (Proxy :: Proxy Integer))
-
-{-
-   Shared test data, generators
--}
 digits :: (Integral a) => [a]
 digits = [0..9]
 
-signedDigits :: (Integral a) => [a]
-signedDigits = [-9..9]
+fromDigitsSpec :: Spec
+fromDigitsSpec = do
+    let hunitTest :: (Integral a, Show a)
+                  => Proxy a -> [Int] -> a -> Expectation
+        hunitTest _ xs n = fromDigits xs `shouldBe` n
 
--- Generate integers where the length in base 10 is uniformly distributed.
--- Take care to prevent overflow.
-uniformLengthIntegralGen :: (Random a, Integral a) => Gen a
-uniformLengthIntegralGen = sized $ \n -> oneof $ map genLength [1..n]
-  where genLength i = oneof [positive, negative]
-          where lower = 10^(i - 1)
-                upper = 10^i - 1
-                positive = choose (lower, upper)
-                negative = choose (-upper, -lower)
+        int = Proxy :: Proxy Int
+        integer = Proxy :: Proxy Integer
+    it "empty list, output type Int" $ hunitTest int [] 0
+    it "empty list, output type Integer" $ hunitTest integer [] 0
 
-uniformLengthIntGen :: Gen Int
-uniformLengthIntGen = resize maxIntLength uniformLengthIntegralGen
-  where maxIntLength = length (show (maxBound :: Int)) - 1
+    let testDigits :: (Integral a, Show a) => Proxy a -> [a] -> Expectation
+        testDigits proxy ds = forM_ ds $ \x ->
+            hunitTest proxy [fromIntegral x] x
+    it "single-digit inputs, output type Int" $ testDigits int digits
+    it "single-digit inputs, output type Integer" $ testDigits integer digits
 
-uniformLengthIntegerGen :: Gen Integer
-uniformLengthIntegerGen = resize maxNumDigits uniformLengthIntegralGen
+    let naive :: (Integral a, Read a) => [Int] -> a
+        naive = read . concatMap show . (0:)
+
+        qcTest :: forall a. (Integral a, Read a) => Proxy a -> [Int] -> Property
+        qcTest _ xs = toInteger (fromDigits xs :: a) === (naive xs :: Integer)
+
+        digitListGen :: Gen [Int]
+        digitListGen = listOf (elements digits)
+
+        -- Lists that will not cause Int overflow
+        smallListGen :: Gen [Int]
+        smallListGen = digitListGen `suchThat` (not . overflow)
+          where
+            overflow xs = (naive xs :: Integer) > toInteger (maxBound :: Int)
+    it "arbitrary inputs, output type Int" $
+        forAll smallListGen (qcTest int)
+    it "arbitrary inputs, output type Integer" $
+        forAll digitListGen (qcTest integer)
+
+toDigitsSpec :: Spec
+toDigitsSpec = do
+    let testDigits :: (Integral a) => [a] -> Expectation
+        testDigits ds = forM_ ds $ \x -> toDigits x `shouldBe` [fromIntegral x]
+    it "single-digit Ints"     $ testDigits (digits :: [Int])
+    it "single-digit Integers" $ testDigits (digits :: [Integer])
+    it "three digits"         $ toDigits 345 `shouldBe` [3, 4, 5]
+
+    let naive :: (Integral a, Show a) => a -> [Int]
+        naive = map (read . (:[])) . show
+
+        test :: (Integral a, Show a) => a -> Property
+        test x = toDigits x === naive x
+    it "arbitrary length Int" $
+        forAll (arbitrary `suchThat` (>= 0) :: Gen Int) test
+    it "arbitrary length Integer" $
+        forAll (arbitrary `suchThat` (>= 0) :: Gen Integer) test

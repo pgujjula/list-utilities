@@ -130,7 +130,7 @@ groupAdj = groupAdjBy (==)
 
 {-| /O(n)./ Like 'groupAdj', with a custom equality test.
 
-    >>> groupAdjBy (comparing head) ["a1", "a2", "b1", "c1", "a3", "a4"]
+    >>> groupAdjBy ((==) `on` head) ["a1", "a2", "b1", "c1", "a3", "a4"]
     [["a1", "a2"], ["b1"], ["c1"], ["a3", "a4"]]
 -}
 groupAdjBy :: (a -> a -> Bool) -> [a] -> [[a]]
@@ -175,7 +175,7 @@ deleteAdjDups = deleteAdjDupsBy (==)
 {-| /O(n)./ Like 'deleteAdjDups', with a custom equality test. First appearances
     are kept.
 
-    >>> deleteAdjDupsBy (comparing head) ["a1", "a2", "b1", "b2", "a3", "a4"]
+    >>> deleteAdjDupsBy ((==) `on` head) ["a1", "a2", "b1", "b2", "a3", "a4"]
     ["a1", "b1", "a3]
 -}
 deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]

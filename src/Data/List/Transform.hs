@@ -33,7 +33,7 @@ import Control.Monad (guard)
 import Data.List     (sort, sortBy, uncons)
 import Data.Maybe    (fromMaybe)
 
-{-| @takeEvery n xs@ is a list of every @n@th element of @xs@. 
+{-| @takeEvery n xs@ is a list of every @n@th element of @xs@.
 
     __Precondition:__ @n@ must be positive.
 
@@ -180,7 +180,7 @@ deleteAdjDupsBy eq xs@(x : _) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
 
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is
-    right. 
+    right.
 
     >>> rotate 2 [1..6]
     [3, 4, 5, 6, 1, 2]

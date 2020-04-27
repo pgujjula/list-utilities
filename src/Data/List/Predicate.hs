@@ -4,7 +4,7 @@
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
- 
+
 Predicates (@True@/@False@ queries) on lists.
 
 The functions in this module are as lazy as possible. For example,

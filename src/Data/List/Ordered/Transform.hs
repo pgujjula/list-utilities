@@ -82,7 +82,7 @@ diff = diffBy compare
 
     __Stability:__ If the left side has @x@ representatives of an equivalence
     class @n@, and the right side has @y@, then the last @max(x - y, 0)@
-    representatives from the left side used for @n@ in the output. 
+    representatives from the left side used for @n@ in the output.
 
     >>> let xs = ["a1", "a2",       "b1",     ]
     >>> let ys = ["a3", "a4", "a5",       "c1"]
@@ -110,7 +110,7 @@ diffBy cmp (x:xs) (y:ys) =
 intersect :: (Ord a) => [a] -> [a] -> [a]
 intersect = intersectBy compare
 
-{-| Like 'intersect' with a custom comparison function. 
+{-| Like 'intersect' with a custom comparison function.
 
     __Stability:__ If the left side has @x@ representatives of an equivalence
     class @n@, and the right side has @y@, then the first @min(x, y)@

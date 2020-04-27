@@ -1,12 +1,11 @@
 {-| Module      : Data.List.Digit
-    Description : Lists of digits to numbers, and vice versa
+    Description : Lists of digits to numbers, and vice versa.
     Copyright   : (c) Preetham Gujjula, 2020
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-Lists of digits to numbers, and vice versa. Function behavior is undefined for
-inputs that don't satisfy the preconditions.
+Lists of digits to numbers, and vice versa.
 -}
 module Data.List.Digit
     ( fromDigits
@@ -32,7 +31,19 @@ ordZero = ord '0'
     42
 -}
 fromDigits :: (Integral a) => [Int] -> a
-fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)
+fromDigits = compute . validate
+  where
+    compute = fromInteger . read . map fromDigit . pad
+      where 
+        fromDigit x = chr (x + ordZero)
+        pad = (0 :)  -- for empty input lists
+
+    validate xs
+        | not (all (`elem` [0..9]) xs) = error errorMessage
+        | otherwise                    = xs
+      where
+        errorMessage = "Data.List.Digit.fromDigits: All elements of the input "
+                    ++ "must be in the range [0..9]."
 
 {-| Generate the list of digits in the input.
 
@@ -47,4 +58,9 @@ fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)
     [0]
 -}
 toDigits :: (Integral a) => a -> [Int]
-toDigits = map (\x -> ord x - ordZero) . show . toInteger
+toDigits = map toDigit . show . toInteger . validate
+  where
+    toDigit x = ord x - ordZero
+    validate n
+      | n < 0     = error "Data.List.Digit.toDigits: Input must be nonnegative."
+      | otherwise = n

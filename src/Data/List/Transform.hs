@@ -5,9 +5,7 @@
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-= Transform lists
-
-  aslkdfaljskdfj
+Transform lists to other lists.
 -}
 module Data.List.Transform (
     -- * Filters
@@ -35,13 +33,13 @@ import Control.Monad (guard)
 import Data.List     (sort, sortBy, uncons)
 import Data.Maybe    (fromMaybe)
 
-{-| @takeEvery n xs@ is a list of every @n@th element of @xs@.
+{-| @takeEvery n xs@ is a list of every @n@th element of @xs@. 
 
     __Precondition:__ @n@ must be positive.
 
     >>> takeEvery 3 [1..10]
     [3, 6, 9]
-    >>> (takeEvery 1 [1..10]) == [1..10]
+    >>> takeEvery 1 [1..10] == [1..10]
     True
 -}
 takeEvery :: Int -> [a] -> [a]
@@ -59,8 +57,11 @@ takeEvery n xs =
     [3, 2, 1]
     >>> takeUntil undefined []
     []
-    >>> takeUntil undefined [1]
-    [1]
+
+    Note that @takeUntil@ on a nonempty list must always yield the first
+    element, and the implementation is lazy enough to take advantage of this
+    fact.
+
     >>> head (takeUntil undefined [1..])
     1
 -}
@@ -83,7 +84,7 @@ dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil _ []     = []
 dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 
-{-| Group the equal elements of the list together, in sorted order. 
+{-| /O(n log(n))./ Group the equal elements of the list together, in sorted order. 
 
     >>> group [1, 3, 2, 3, 2, 3]
     [[1], [2, 2], [3, 3, 3]]
@@ -95,7 +96,7 @@ dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 group :: (Ord a) => [a] -> [[a]]
 group = groupAdj . sort
 
-{-| Like 'group', but with a custom comparison test. The grouping is stable, so
+{-| /O(n log(n))./ Like 'group', but with a custom comparison test. The grouping is stable, so
     if @x@, @y@ are in the same group, and @x@ appears before @y@ in the
     original list, then @x@ appears before @y@ in the group.
 
@@ -107,7 +108,7 @@ groupBy cmp = groupAdjBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
-{-| Group adjacent elements of xs that are equal. Works with infinite lists.
+{-| /O(n)./ Group adjacent elements of xs that are equal. Works with infinite lists.
 
     >>> groupAdj [1, 3, 3, 3, 2, 2, 3]
     [[1], [3, 3, 3], [2, 2], [3]]
@@ -121,7 +122,7 @@ groupBy cmp = groupAdjBy eq . sortBy cmp
 groupAdj :: (Eq a) => [a] -> [[a]]
 groupAdj = groupAdjBy (==)
 
-{-| Like 'groupAdj', but with a custom equality test.
+{-| /O(n)./ Like 'groupAdj', but with a custom equality test.
 
     >>> groupAdjBy (comparing head) ["a", "at", "be", "cat", "an", "all"]
     [["a", "at"], ["be"], ["cat"], ["an", "all"]]
@@ -136,17 +137,40 @@ groupAdjBy eq = foldr f []
             guard (x `eq` head ys)
             return (ys, yss')
 
+{-| /O(n log(n))./ Delete duplicates from the list. First appearances are kept,
+    and in their relative order.
+
+    >>> deleteDups [1, 2, 2, 3, 2, 1]
+    [1, 2, 3]
+-}
 deleteDups :: (Ord a) => [a] -> [a]
 deleteDups = deleteAdjDups . sort
 
+{-| /O(n log(n))./ Like 'deleteDups', with a custom comparison test.
+
+    >>> deleteDupsBy (comparing head) ["at", "bin", "cat", "all", "dog"]
+    ["at", "bin", "cat", "dog"]
+-}
 deleteDupsBy :: (a -> a -> Ordering) -> [a] -> [a]
 deleteDupsBy cmp = deleteAdjDupsBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
+{-| /O(n)./ Delete adjacent duplicates from the list. First appearances are
+    kept, and in their relative order.
+
+    >>> deleteAdjDups [1, 3, 4, 4, 4, 3]
+    [1, 3, 4, 3]
+-}
 deleteAdjDups :: (Eq a) => [a] -> [a]
 deleteAdjDups = deleteAdjDupsBy (==)
 
+{-| /O(n)./ Like 'deleteAdjDups', with a custom equality test. First appearances
+    are kept, and in their relative order.
+
+    >>> deleteAdjDupsBy (comparing head) ["a1", "a2", "b1", "b2", "a3", "a4"]
+    ["a1", "b1", "a3]
+-}
 deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
 deleteAdjDupsBy eq xs@(x : _) =

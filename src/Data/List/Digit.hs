@@ -5,7 +5,8 @@
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-    Lists of digits to numbers, and vice versa.
+Lists of digits to numbers, and vice versa. Function behavior is undefined for
+inputs that don't satisfy the preconditions.
 -}
 module Data.List.Digit
     ( fromDigits
@@ -35,8 +36,10 @@ fromDigits = fromInteger . read . map (\x -> chr (x + ordZero)) . (0 :)
 
 {-| Generate the list of digits in the input.
 
-    __Precondition:__ The input must be nonnegative, so that @toDigits@ is the
-    inverse of @fromDigits@.
+    __Precondition:__ The input must be nonnegative. The domain is restricted so
+    that the invariant @(fromDigits . toDigits) n == n@ holds for any @n@ in the
+    domain of @toDigits@. This wouldn't be possible if we allowed things like
+    @toDigits (-12) == [1, 2]@.
 
     >>> toDigits 2338475
     [2, 3, 3, 8, 4, 7, 5]

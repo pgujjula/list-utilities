@@ -4,30 +4,40 @@
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
+ 
+Predicates (@True@/@False@ queries) on lists.
 
-    Predicates on lists.
+The functions in this module are
+as lazy as possible. For example, @'sortedBy' undefined [undefined] == True@,
+since a list of one element must be sorted, no matter the comparison function,
+or the value of the element.
 -}
 module Data.List.Predicate
-  ( allEqual
+  ( -- * All equal
+    allEqual
   , allEqualBy
 
+   -- * Sortedness
   , sorted
   , sortedBy
 
+  -- * All unique
   , allUnique
   , allUniqueBy
   , allAdjUnique
   , allAdjUniqueBy
 
+  -- * Sequential
   , ascSequential
   , descSequential
 
+  -- * Miscellaneous
   , palindrome
   ) where
 
 import Data.List (sort, sortBy)
 
-{-| Whether all the elements in the list are equal.
+{-| Whether the elements are all equal.
 
     >>> allEqual [1..]
     False
@@ -35,20 +45,18 @@ import Data.List (sort, sortBy)
     True
     >>> allEqual []
     True
+    >>> allEqual [1]
+    True
 -}
 allEqual :: (Eq a) => [a] -> Bool
 allEqual = allEqualBy (==)
 
 {-| Like 'allEqual', with a custom equality test.
 
-    >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 23]
+    >>> allEqualBy ((==) `on` (`mod` 10)) [3, 13, 23]
     True
-    >>> allEqualBy ((==) `on` (`rem` 10)) [3, 13, 24]
+    >>> allEqualBy ((==) `on` (`mod` 10)) [3, 13, 24]
     False
-    >>> allEqualBy undefined []
-    True
-    >>> allEqualBy undefined [3]
-    True
 -}
 allEqualBy :: (a -> a -> Bool) -> [a] -> Bool
 allEqualBy _  []       = True
@@ -62,7 +70,7 @@ allEqualBy eq (x : xs) = all (eq x) xs
     False
     >>> sorted []
     True
-    >>> sorted [x]
+    >>> sorted [1]
     True
 -}
 sorted :: (Ord a) => [a] -> Bool
@@ -74,10 +82,6 @@ sorted = sortedBy compare
     True
     >>> sortedBy (comparing Down) [3, 2, 1, 2]
     False
-    >>> sortedBy undefined []
-    True
-    >>> sortedBy undefined [undefined]
-    True
 -}
 sortedBy :: (a -> a -> Ordering) -> [a] -> Bool
 sortedBy _   []  = True
@@ -104,21 +108,18 @@ allUnique = allAdjUnique . sort
     True
     >>> allUniqueBy (comparing head) ["apple", "bow", "ant"]
     False
-    >>> allUniqueBy undefined []
-    True
-    >>> allUniqueBy undefined [undefined]
-    True
 -}
 allUniqueBy :: (a -> a -> Ordering) -> [a] -> Bool
 allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
-{-| Whether all adjacent pairs of elements are different.
+{-| Whether all adjacent pairs of elements are different. Useful for determining
+    whether a sorted list is all unique.
 
-    >>> allAdjUnique [4, 2, 3, 2]
+    >>> allAdjUnique [1, 2, 3, 2]
     True
-    >>> allAdjUnique [4, 2, 2, 3]
+    >>> allAdjUnique [1, 2, 2, 3]
     False
     >>> allAdjUnique []
     True
@@ -128,16 +129,12 @@ allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
-{-| Like @allAdjUnique@, with a custom equality test.
+{-| Like 'allAdjUnique', with a custom equality test.
 
     >>> allAdjUniqueBy (comparing head) ["apple", "bow", "cat", "ant"]
     True
     >>> allAdjUniqueBy (comparing head) ["apple", "ant", "bow", "cat"]
     False
-    >>> allAdjUniqueBy undefined []
-    True
-    >>> allAdjUniqueBy undefined [undefined]
-    True
 -}
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
@@ -181,9 +178,9 @@ descSequential xs = and $ zipWith (==) xs' [x, x - 1 ..]
     True
     >>> palindrome "rover"
     False
-    >>> palindrome "a"
-    True
     >>> palindrome ""
+    True
+    >>> palindrome "a"
     True
 -}
 palindrome :: (Eq a) => [a] -> Bool

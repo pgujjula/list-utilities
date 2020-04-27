@@ -43,9 +43,6 @@ library:
     - Data.List.Transform
   dependencies:
     - pqueue
-    - reflection
-    - mtl
-    - transformers
 
 tests:
   spec:

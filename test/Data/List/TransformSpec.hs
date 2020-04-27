@@ -95,7 +95,7 @@ groupSpec = do
         group [1, 3, 2, 3, 2, 3] `shouldBe` [[1], [2, 2], [3, 3, 3]]
 
     let valid :: (Ord a, Show a) => [a] -> Bool
-        valid xss = all (not . null) gs
+        valid xss = not (any null gs)
                  && all allEqual gs
                  && concat gs == sort xss
                  && allUnique hs
@@ -133,7 +133,7 @@ groupAdjSpec = do
         take n (groupAdj input) `shouldBe` take n output
 
     let valid :: (Eq a, Show a) => [a] -> Bool
-        valid xss = all (not . null) gs
+        valid xss = not (any null gs)
                  && all allEqual gs
                  && trunc (concat gs) == trunc xss
                  && allAdjUnique hs

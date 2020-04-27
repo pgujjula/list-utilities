@@ -28,12 +28,18 @@ spec = do
 
     describe "palindrome" palindromeSpec
 
+empty :: [Integer]
+empty = []
+
+singletonUndef :: [Integer]
+singletonUndef = [undefined]
+
 allEqualSpec :: Spec
 allEqualSpec = do
     it "empty list" $
-        allEqual ([] :: [()]) `shouldBe` True
+        allEqual empty `shouldBe` True
     it "singleton" $
-        allEqual [3] `shouldBe` True
+        allEqual singletonUndef `shouldBe` True
     it "repeated element, finite list" $
         allEqual (replicate 10 3) `shouldBe` True
     it "single unequal element, finite list" $ do
@@ -46,9 +52,9 @@ allEqualSpec = do
 allEqualBySpec :: Spec
 allEqualBySpec = do
     it "empty list" $
-        allEqualBy undefined ([] :: [()]) `shouldBe` True
+        allEqualBy undefined empty `shouldBe` True
     it "singleton" $
-        allEqualBy undefined [3] `shouldBe` True
+        allEqualBy undefined singletonUndef `shouldBe` True
 
     let eq = (==) `on` (`rem` 10)
     it "repeated element, finite list" $
@@ -62,8 +68,8 @@ allEqualBySpec = do
 
 sortedSpec :: Spec
 sortedSpec = do
-    it "empty" $ sorted ([] :: [()]) `shouldBe` True
-    it "singleton" $ sorted [3] `shouldBe` True
+    it "empty" $ sorted empty `shouldBe` True
+    it "singleton" $ sorted singletonUndef `shouldBe` True
     it "finite list, sorted" $
         sorted [2, 4..10] `shouldBe` True
     it "finite list, not sorted" $
@@ -82,9 +88,9 @@ sortedBySpec = do
     let cmp :: (Ord a) => a -> a -> Ordering
         cmp = comparing Down
     it "empty" $
-        sortedBy undefined ([] :: [()]) `shouldBe` True
+        sortedBy undefined empty `shouldBe` True
     it "singleton" $
-        sortedBy undefined [3] `shouldBe` True
+        sortedBy undefined singletonUndef `shouldBe` True
     it "finite list, sorted" $
         sortedBy cmp [10, 8..2] `shouldBe` True
     it "finite list, not sorted" $
@@ -102,9 +108,9 @@ sortedBySpec = do
 allUniqueSpec :: Spec
 allUniqueSpec = do
     it "empty list" $
-        allUnique ([] :: [()]) `shouldBe` True
+        allUnique empty `shouldBe` True
     it "singleton list" $
-        allUnique [1] `shouldBe` True
+        allUnique singletonUndef `shouldBe` True
     it "finite list, no repeats" $
         allUnique [10, 9..1] `shouldBe` True
     it "finite list, one repeat" $
@@ -115,9 +121,9 @@ allUniqueSpec = do
 allUniqueBySpec :: Spec
 allUniqueBySpec = do
     it "empty list" $
-        allUniqueBy undefined [] `shouldBe` True
+        allUniqueBy undefined empty `shouldBe` True
     it "singleton list" $
-        allUniqueBy undefined [1] `shouldBe` True
+        allUniqueBy undefined singletonUndef `shouldBe` True
 
     let cmp = comparing (`rem` 10)
     it "finite list, no repeats" $
@@ -128,9 +134,9 @@ allUniqueBySpec = do
 allAdjUniqueSpec :: Spec
 allAdjUniqueSpec = do
     it "empty list" $
-        allAdjUnique ([] :: [()]) `shouldBe` True
+        allAdjUnique empty `shouldBe` True
     it "singleton list" $
-        allAdjUnique [1] `shouldBe` True
+        allAdjUnique singletonUndef `shouldBe` True
     it "finite list, no repeats" $
         allAdjUnique [1, 5, 2, 8, 2, 5] `shouldBe` True
     it "finite list, one repeat" $
@@ -146,9 +152,9 @@ allAdjUniqueSpec = do
 allAdjUniqueBySpec :: Spec
 allAdjUniqueBySpec = do
     it "empty list" $
-        allAdjUniqueBy undefined ([] :: [()]) `shouldBe` True
+        allAdjUniqueBy undefined empty `shouldBe` True
     it "singleton list" $
-        allAdjUniqueBy undefined [1] `shouldBe` True
+        allAdjUniqueBy undefined singletonUndef `shouldBe` True
 
     let eq = (==) `on` (`rem` 10)
     it "finite list, no repeats" $
@@ -159,9 +165,9 @@ allAdjUniqueBySpec = do
 ascSequentialSpec :: Spec
 ascSequentialSpec = do
     it "empty list" $
-        ascSequential ([] :: [()]) `shouldBe` True
+        ascSequential empty `shouldBe` True
     it "singleton list" $
-        ascSequential [1] `shouldBe` True
+        ascSequential singletonUndef `shouldBe` True
     it "finite list, ascending" $
         ascSequential [1..10] `shouldBe` True
     it "finite list, not ascending" $ do
@@ -173,9 +179,9 @@ ascSequentialSpec = do
 descSequentialSpec :: Spec
 descSequentialSpec = do
     it "empty list" $
-        descSequential ([] :: [()]) `shouldBe` True
+        descSequential empty `shouldBe` True
     it "singleton list" $
-        descSequential [1] `shouldBe` True
+        descSequential singletonUndef `shouldBe` True
     it "finite list, descending" $
         descSequential [10, 9..1] `shouldBe` True
     it "finite list, not descending" $ do

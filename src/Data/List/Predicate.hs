@@ -36,7 +36,7 @@ module Data.List.Predicate
 
 import Data.List (sort, sortBy)
 
-{-| Whether the elements are all equal.
+{-| /O(n)./ Whether the elements are all equal.
 
     >>> allEqual [1..]
     False
@@ -50,7 +50,7 @@ import Data.List (sort, sortBy)
 allEqual :: (Eq a) => [a] -> Bool
 allEqual = allEqualBy (==)
 
-{-| Like 'allEqual', with a custom equality test.
+{-| /O(n)./ Like 'allEqual', with a custom equality test.
 
     >>> allEqualBy ((==) `on` (`mod` 10)) [3, 13, 23]
     True
@@ -61,7 +61,7 @@ allEqualBy :: (a -> a -> Bool) -> [a] -> Bool
 allEqualBy _  []       = True
 allEqualBy eq (x : xs) = all (eq x) xs
 
-{-| Whether the elements are in sorted order.
+{-| /O(n)./ Whether the elements are in sorted order.
 
     >>> sorted [1, 2, 3, 3]
     True
@@ -75,7 +75,7 @@ allEqualBy eq (x : xs) = all (eq x) xs
 sorted :: (Ord a) => [a] -> Bool
 sorted = sortedBy compare
 
-{-| Like 'sorted', with a custom comparison test.
+{-| /O(n)./ Like 'sorted', with a custom comparison test.
 
     >>> sortedBy (comparing Down) [3, 2, 1]
     True
@@ -87,7 +87,7 @@ sortedBy _   []  = True
 sortedBy _   [_] = True
 sortedBy cmp xs  = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 
-{-| Whether the elements are all unique.
+{-| /O(n log(n))./ Whether the elements are all unique.
 
     >>> allUnique [1, 2, 5, 7]
     True
@@ -101,7 +101,7 @@ sortedBy cmp xs  = and $ zipWith (\a b -> cmp a b <= EQ) xs (tail xs)
 allUnique :: (Ord a) => [a] -> Bool
 allUnique = allAdjUnique . sort
 
-{-| Like 'allUnique', with a custom comparison test.
+{-| /O(n log(n))./ Like 'allUnique', with a custom comparison test.
 
     >>> allUniqueBy (comparing head) ["apple", "bow", "cat"]
     True
@@ -113,8 +113,8 @@ allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
-{-| Whether all adjacent pairs of elements are different. Useful for determining
-    whether a sorted list is all unique.
+{-| /O(n)./ Whether all adjacent pairs of elements are different. Useful for
+    determining whether a sorted list is all unique.
 
     >>> allAdjUnique [1, 2, 3, 2]
     True
@@ -128,7 +128,7 @@ allUniqueBy cmp = allAdjUniqueBy eq . sortBy cmp
 allAdjUnique :: (Eq a) => [a] -> Bool
 allAdjUnique = allAdjUniqueBy (==)
 
-{-| Like 'allAdjUnique', with a custom equality test.
+{-| /O(n)./ Like 'allAdjUnique', with a custom equality test.
 
     >>> allAdjUniqueBy (comparing head) ["apple", "bow", "cat", "ant"]
     True
@@ -138,7 +138,7 @@ allAdjUnique = allAdjUniqueBy (==)
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
-{-| Whether the list is increasing sequentially (one-by-one).
+{-| /O(n)./ Whether the list is increasing sequentially (one-by-one).
 
     >>> ascSequential [1, 2, 3, 4, 5]
     True
@@ -154,7 +154,7 @@ ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
   where
     xs' = map fromEnum xs
 
-{-| Whether the list is descending sequentially (one-by-one).
+{-| /O(n)./ Whether the list is descending sequentially (one-by-one).
 
     >>> descSequential [5, 4, 3, 2, 1]
     True
@@ -171,7 +171,8 @@ descSequential xs = and $ zipWith (==) xs' [x, x - 1 ..]
     xs' = map fromEnum xs
     x   = head xs'
 
-{-| Whether the input is a palindrome, i.e., the same forwards and backwards.
+{-| /O(n)./ Whether the input is a palindrome, i.e., the same forwards and
+    backwards.
 
     >>> palindrome "rotor"
     True

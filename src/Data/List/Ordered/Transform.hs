@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-| Module      : Data.List.Ordered.Transform
     Description : Transform ordered lists.
     Copyright   : (c) Preetham Gujjula, 2020
@@ -214,8 +212,8 @@ children (Tree ((_ :| xs) :| xss)) =
     __Stability:__ No guarantees are made regarding stability. Equal elements
     may be returned in any relative order.
 
-    __Performance note:__ A 'MinPQueue' is to store the parts of the list left
-    to merge. After yielding @n@ elements, the 'MinPQueue' stores /O(n)/
+    __Performance note:__ A 'MinPQueue' used is to store the parts of the list
+    left to merge. After yielding @n@ elements, the 'MinPQueue' stores /O(n)/
     elements in the worst case. This can be improved to /O(√n)/ elements, but
     it requires a major algorithm overhaul and may be fixed in a later versions.
 

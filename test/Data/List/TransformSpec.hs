@@ -223,7 +223,7 @@ deleteAdjDupsBySpec :: Spec
 deleteAdjDupsBySpec = do
     it "empty list" $
         deleteAdjDupsBy undefined empty `shouldBe` empty
-    it "singleton list" $ do
+    it "singleton list" $
         length (deleteAdjDupsBy undefined singletonUndef) `shouldBe` 1
     it "finite list" $ do
         let eq = (==) `on` fst

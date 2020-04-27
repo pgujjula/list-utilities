@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 module Data.List.Ordered.TransformSpec (spec) where
 
 import Control.Arrow               ((>>>))
@@ -118,7 +117,7 @@ diffBySpec = do
         diffBy undefined [1, 2, 3] [] `shouldBe` [1, 2, 3]
     it "finite lists" $
         diffBy (comparing Down) [4, 3, 3, 2, 1] [3, 2, 1] `shouldBe` [4, 3]
-    it "later elements preferred" $ do
+    it "later elements preferred" $
         let xs = ["a1", "a2",       "b1"      ]
             ys = ["a3", "a4", "a5",       "c1"]
             zs = ["a5", "c1"]

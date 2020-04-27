@@ -47,7 +47,7 @@ library:
     - mtl
     - transformers
 
-executables:
+tests:
   spec:
     source-dirs: test
     main: Spec.hs

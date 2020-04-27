@@ -1,22 +1,25 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-| Module      : Data.List.Ordered.Transform
-    Description : Transform ordered lists to other ordered lists.
+    Description : Transform ordered lists.
     Copyright   : (c) Preetham Gujjula, 2020
     License     : GPL-3
     Maintainer  : preetham.gujjula@gmail.com
     Stability   : experimental
 
-Transform ordered lists to other ordered lists.
+Transform ordered lists.
 -}
 module Data.List.Ordered.Transform
-  ( -- * Mulitset operations
-    -- | Functions that treat lists as multisets (sets with repetitions
-    -- allowed). All input and output lists in this section are ordered, and the
+  ( -- * Basic mulitset operations
+    -- | Basic operations on lists as multisets (sets with repetitions allowed).
+    -- All input and output lists in this section are ordered, and the
     -- precondition that input lists are ordered is __unchecked__.
     --
-    -- These functions are also lazy as possible. For example,
-    -- @diff [] undefined == []@
+    -- The "by" versions of the functions work on the equivalence classes
+    -- induced by the comparision function. The representatives of each class
+    -- may be distinguisable to the user, so the user may be be concerned with
+    -- how ties between representatives are resolved. The tie-breaking behavior
+    -- for each function is described in the "stability" section.
     --
     -- All functions run in linear time, and work with infinite lists.
     merge
@@ -42,19 +45,20 @@ import qualified Data.PQueue.Prio.Min as PQueue
 
 {-| Merge two lists.
 
-    >>> take 5 $ merge [2, 4..] [1, 3..]
-    [1, 2, 3, 4, 5]
+    >>> merge [1, 2, 3] [1, 2, 4]
+    [1, 1, 2, 2, 3, 4]
 -}
 merge :: (Ord a) => [a] -> [a] -> [a]
 merge = mergeBy compare
 
 {-| Like 'merge', with a custom comparison function.
 
-    __Stability:__ Representatives are returned in their relative order, with the
-    left side preferred on ties.
+    __Stability:__ The left side is preferred on ties.
 
-    >>> mergeBy (comparing head) ["a1", "bit", "cat"] ["a", "cow"]
-    ["at", "a", "bit", "cat", "cow"]
+    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let ys = ["a3", "a4", "a5",       "c1"]
+    >>> mergeBy (comparing head) xs ys
+    ["a1", "a2", "a3", "a4", "a5", "b1", "c1"]
 -}
 mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 mergeBy _ [] ys = ys
@@ -68,18 +72,26 @@ mergeBy cmp (x:xs) (y:ys)
 
     >>> diff [1, 1, 1, 1, 2] [1, 1, 3]
     [1, 1, 2]
+    >>> diff [] undefined
+    []
 -}
 diff :: (Ord a) => [a] -> [a] -> [a]
 diff = diffBy compare
 
-{-| Like @diff@ with a custom comparison function.
+{-| Like 'diff' with a custom comparison function.
 
-    __Stability:__ Representatives are returned in their relative order.
-    If the left side has @x@ representatives of an equivalence class @n@, and the right side has @y@, then
-    the last @x - y@ representatives from the left side used for @n@ in the output.
+    __Stability:__ If the left side has @x@ representatives of an equivalence
+    class @n@, and the right side has @y@, then the last @max(x - y, 0)@
+    representatives from the left side used for @n@ in the output. 
 
-    >>> diffBy (comparing Down) [2, 1, 1, 1, 1] [3, 1, 1]
-    [2, 1, 1]
+    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let ys = ["a3", "a4", "a5",       "c1"]
+    >>> diffBy (comparing head) xs ys
+    ["b1"]
+    >>> diffBy (comparing head) ys xs
+    ["a5", "c1"]
+
+    Observe that @"a5"@ is the /last/ representative of the "a" class in @ys@.
 -}
 diffBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 diffBy _ [] _  = []
@@ -90,7 +102,7 @@ diffBy cmp (x:xs) (y:ys) =
         EQ -> diffBy cmp xs ys
         GT -> diffBy cmp (x:xs) ys
 
-{-| Yield all the elements in both lists, with multiplicities considered.
+{-| Yield the elements in both lists, with multiplicities considered.
 
     >>> intersect [1, 2, 3, 3, 3, 4, 5, 6] [2, 3, 3, 5, 7]
     [2, 3, 3, 5]
@@ -98,18 +110,16 @@ diffBy cmp (x:xs) (y:ys) =
 intersect :: (Ord a) => [a] -> [a] -> [a]
 intersect = intersectBy compare
 
-{-| Like 'intersect' with a custom comparison function. Elements on the left
-    side are used as the representatives of an equivalence class in the output
-    list.
+{-| Like 'intersect' with a custom comparison function. 
 
-    __Stability:__ Representatives are returned in their relative order.
-    If the left side has @x@ representatives of an equivalence class @n@, and the right side has @y@, then
-    the first @min(x, y)@ representatives from the left side are used for @n@ in the output.
+    __Stability:__ If the left side has @x@ representatives of an equivalence
+    class @n@, and the right side has @y@, then the first @min(x, y)@
+    representatives from the left side are used for @n@ in the output.
 
-    >>> let xs = (map ("left",)) [1, 2, 2, 3]
-    >>> let ys = (map ("right",)) [2, 3, 4]
-    >>> intersectBy (comparing snd) xs ys
-    [("left", 2), ("left", 3)]
+    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let ys = ["a3", "a4", "a5",       "c1"]
+    >>> intersectBy (comparing head) xs ys
+    ["a1", "a2"]
 -}
 intersectBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 intersectBy _ [] _ = []
@@ -120,7 +130,7 @@ intersectBy cmp (x:xs) (y:ys) =
         EQ -> x : intersectBy cmp xs ys
         GT -> intersectBy cmp (x:xs) ys
 
-{-| Yields all the elements in either list, with multiplicities considered.
+{-| Yield the elements in either list, with multiplicities considered.
 
     >>> union [1, 3, 3, 4, 5] [2, 3, 5, 7]
     [1, 2, 3, 3, 4, 5, 7]
@@ -130,17 +140,20 @@ union = unionBy compare
 
 {-| Like 'union', with a custom comparison function.
 
-    __Stability:__ Representatives are returned in their relative order.
-    Assume the left side has @x@ representatives of an equivalence class @n@, and the right side has @y@.
+    __Stability:__ If left side has @x@ representatives of an equivalence class
+    @n@, and the right side has @y@, then:
 
-     * If @x >= y@, the @x@ representatives from the left will be used for @n@ in the output.
-     * If @x < y@, then the first @x@ representatives from the left and __last__ @y - x@ representatives from
-    the right will be used for @n@.
+     * If @x >= y@, the @x@ representatives from the left will be used for @n@
+       in the output.
+     * If @x < y@, then the first @x@ representatives from the left and __last__
+       @y - x@ representatives from the right will be used.
 
-    >>> let xs = map (("left",))  ["a1", "a2",       "c1"]
-    >>> let ys = map (("right",)) ["a3", "a4", "a5", "b1"]
-    >>> unionBy (comparing (head . snd)) xs ys  -- compare just the first letters
-    [("left", "a1"), ("left", "a2"), ("right", "a5"), ("right", "b1"), ("left", "c1")]
+    >>> let xs = ["a1", "a2",       "b1",     ]
+    >>> let ys = ["a3", "a4", "a5",       "c1"]
+    >>> unionBy (comparing head) xs ys
+    ["a1", "a2", "a5", "b1", "c1"]
+
+    Observe that @"a5"@ is the /last/ representative of the "a" class in @ys@.
  -}
 unionBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 unionBy _ [] xs = xs

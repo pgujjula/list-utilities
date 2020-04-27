@@ -96,19 +96,20 @@ dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
 group :: (Ord a) => [a] -> [[a]]
 group = groupAdj . sort
 
-{-| /O(n log(n))./ Like 'group', but with a custom comparison test. The grouping is stable, so
+{-| /O(n log(n))./ Like 'group', with a custom comparison test. The grouping is stable, so
     if @x@, @y@ are in the same group, and @x@ appears before @y@ in the
     original list, then @x@ appears before @y@ in the group.
 
-    >>> groupBy (comparing head) ["a", "be", "cat", "ant", "bark"]
-    [["a", "ant"], ["be", "bark"], ["cat"]]
+    >>> groupBy (comparing head) ["b1", "c1", "a1", "b2", "a2"]
+    [["a1", "a2"], ["b1", "b2"], ["c1"]]
 -}
 groupBy :: (a -> a -> Ordering) -> [a] -> [[a]]
 groupBy cmp = groupAdjBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
-{-| /O(n)./ Group adjacent elements of xs that are equal. Works with infinite lists.
+{-| /O(n)./ Group adjacent elements that are equal. Works with infinite lists.
+    Useful for grouping equal elements of a sorted list.
 
     >>> groupAdj [1, 3, 3, 3, 2, 2, 3]
     [[1], [3, 3, 3], [2, 2], [3]]
@@ -122,10 +123,10 @@ groupBy cmp = groupAdjBy eq . sortBy cmp
 groupAdj :: (Eq a) => [a] -> [[a]]
 groupAdj = groupAdjBy (==)
 
-{-| /O(n)./ Like 'groupAdj', but with a custom equality test.
+{-| /O(n)./ Like 'groupAdj', with a custom equality test.
 
-    >>> groupAdjBy (comparing head) ["a", "at", "be", "cat", "an", "all"]
-    [["a", "at"], ["be"], ["cat"], ["an", "all"]]
+    >>> groupAdjBy (comparing head) ["a1", "a2", "b1", "c1", "a3", "a4"]
+    [["a1", "a2"], ["b1"], ["c1"], ["a3", "a4"]]
 -}
 groupAdjBy :: (a -> a -> Bool) -> [a] -> [[a]]
 groupAdjBy eq = foldr f []
@@ -137,27 +138,27 @@ groupAdjBy eq = foldr f []
             guard (x `eq` head ys)
             return (ys, yss')
 
-{-| /O(n log(n))./ Delete duplicates from the list. First appearances are kept,
-    and in their relative order.
+{-| /O(n log(n))./ Delete duplicates from the list. Output is in sorted order.
 
-    >>> deleteDups [1, 2, 2, 3, 2, 1]
+    >>> deleteDups [3, 1, 1, 2, 1, 3]
     [1, 2, 3]
 -}
 deleteDups :: (Ord a) => [a] -> [a]
 deleteDups = deleteAdjDups . sort
 
-{-| /O(n log(n))./ Like 'deleteDups', with a custom comparison test.
+{-| /O(n log(n))./ Like 'deleteDups', with a custom comparison test. First appearances are kept.
 
-    >>> deleteDupsBy (comparing head) ["at", "bin", "cat", "all", "dog"]
-    ["at", "bin", "cat", "dog"]
+    >>> deleteDupsBy (comparing head) ["a1", "c1", "d1", "a2", "b1"]
+    ["a1", "b1", "c1", "d1"]
 -}
 deleteDupsBy :: (a -> a -> Ordering) -> [a] -> [a]
 deleteDupsBy cmp = deleteAdjDupsBy eq . sortBy cmp
   where
     eq a b = cmp a b == EQ
 
-{-| /O(n)./ Delete adjacent duplicates from the list. First appearances are
-    kept, and in their relative order.
+{-| /O(n)./ Delete adjacent duplicates from the list. Works with infinite lists.
+    Useful for deleting duplicates from a sorted list. Remaining elements are in
+    the same relative order.
 
     >>> deleteAdjDups [1, 3, 4, 4, 4, 3]
     [1, 3, 4, 3]
@@ -166,7 +167,7 @@ deleteAdjDups :: (Eq a) => [a] -> [a]
 deleteAdjDups = deleteAdjDupsBy (==)
 
 {-| /O(n)./ Like 'deleteAdjDups', with a custom equality test. First appearances
-    are kept, and in their relative order.
+    are kept.
 
     >>> deleteAdjDupsBy (comparing head) ["a1", "a2", "b1", "b2", "a3", "a4"]
     ["a1", "b1", "a3]
@@ -177,8 +178,7 @@ deleteAdjDupsBy eq xs@(x : _) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
 
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is
-    right. Zero- and left-rotation work with infinite lists. Also works
-    efficiently if the offset is greater than the length of the list.
+    right. 
 
     >>> rotate 2 [1..6]
     [3, 4, 5, 6, 1, 2]
@@ -186,8 +186,16 @@ deleteAdjDupsBy eq xs@(x : _) =
     [5, 6, 1, 2, 3, 4]
     >>> rotate 0 [1..6]
     [1, 2, 3, 4, 5, 6]
-    >>> rotate (6000000000000 + 2) [1..6]  -- Wrap around implicitly
+
+    @rotate@ also works efficiently even if the offset is very large, by
+    reducing it modulo the length of the list.
+
+    >>> rotate (60000000000000 + 2) [1..6]
     [3, 4, 5, 6, 1, 2]
+
+    @rotate@ can do zero- and left- shifts on infinite lists, but right-shifts
+    will diverge.
+
     >>> take 6 $ rotate 2 [1..]  -- This works
     [3, 4, 5, 6, 7, 8]
     >>> take 6 $ rotate (-2) [1..]  -- This diverges

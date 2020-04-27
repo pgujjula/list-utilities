@@ -7,10 +7,9 @@
  
 Predicates (@True@/@False@ queries) on lists.
 
-The functions in this module are
-as lazy as possible. For example, @'sortedBy' undefined [undefined] == True@,
-since a list of one element must be sorted, no matter the comparison function,
-or the value of the element.
+The functions in this module are as lazy as possible. For example,
+@'sortedBy' undefined [undefined] == True@, since a list of one element must be
+sorted, no matter the comparison function, or the value of the element.
 -}
 module Data.List.Predicate
   ( -- * All equal
@@ -76,7 +75,7 @@ allEqualBy eq (x : xs) = all (eq x) xs
 sorted :: (Ord a) => [a] -> Bool
 sorted = sortedBy compare
 
-{-| Like 'sorted', with a custom equality test.
+{-| Like 'sorted', with a custom comparison test.
 
     >>> sortedBy (comparing Down) [3, 2, 1]
     True
@@ -139,7 +138,7 @@ allAdjUnique = allAdjUniqueBy (==)
 allAdjUniqueBy :: (a -> a -> Bool) -> [a] -> Bool
 allAdjUniqueBy eq xs = (not . or) $ zipWith eq xs (tail xs)
 
-{-| Whether the list is increasing sequentially.
+{-| Whether the list is increasing sequentially (one-by-one).
 
     >>> ascSequential [1, 2, 3, 4, 5]
     True
@@ -155,7 +154,7 @@ ascSequential xs = and $ zipWith (==) xs' [head xs' ..]
   where
     xs' = map fromEnum xs
 
-{-| Whether the list is descending sequentially.
+{-| Whether the list is descending sequentially (one-by-one).
 
     >>> descSequential [5, 4, 3, 2, 1]
     True

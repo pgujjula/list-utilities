@@ -206,14 +206,18 @@ children (Branch (_ :| xs)) = catMaybes [Branch <$> nonEmpty xs]
 children (Tree ((_ :| xs) :| xss)) =
     catMaybes [Branch <$> nonEmpty xs, Tree <$> nonEmpty xss]
 
-{-| Merge a list of lists. Works with infinite lists of infinite lists. Each
-    list must be ordered, and the first elements of the list of lists must be
-    ordered.
+{-| Merge a list of lists. Works with infinite lists of infinite
+    lists. Each list must be ordered, and the first elements of the list of
+    lists must be ordered. The time complexity to yield the first @n@ elements
+    is /O(n log(n))/.
 
-    __Stability:__ No guarantees are made regarding stability. Equal elements may
-    be returned in any relative order.
+    __Stability:__ No guarantees are made regarding stability. Equal elements
+    may be returned in any relative order.
 
-    __Performance note:__
+    __Performance note:__ A 'MinPQueue' is to store the parts of the list left
+    to merge. After yielding @n@ elements, the 'MinPQueue' stores /O(n)/
+    elements in the worst case. This can be improved to /O(√n)/ elements, but
+    it requires a major algorithm overhaul and may be fixed in a later versions.
 
     >>> take 10 $ mergeMany $ map (\x -> [x..]) [1..]
     [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
@@ -241,12 +245,14 @@ mergeMany xss =
                   -> MinPQueue a (Segment a)
     insertSegment queue segment = PQueue.insert (getRoot segment) segment queue
 
-{-| /O(n log(n))./ Given a binary operation @op@ and sorted lists @xs@, @ys@,
+{-| Given a binary operation @op@ and sorted lists @xs@, @ys@,
     @applyMerge op xs ys@  yields in sorted order, the list
 
     @[z | z = op x y, x <- xs, y <- ys]@
 
     It works even if @xs@, @ys@ are infinite.
+
+    The time complexity to yield the first @n@ elements is /O(n log(n))/.
 
     __Preconditions:__ Each list must be sorted, and @op@ must be non-decreasing
     in both arguments restricted to @xs@ and @ys@. That is,
@@ -259,16 +265,16 @@ mergeMany xss =
     These preconditions seem complicated, because they are the barebones
     conditions for using this function. In the most common use case, @xs@ and
     @ys@ will be sorted lists of numbers, and @op@ will be non-decreasing in
-    both arguments (something like @(+)@ or @(*)@).
+    both of its arguments (something like @(+)@ or @(++)@).
 
     __Stability:__ No guarantees are made regarding stability. Equal elements
     may be returned in any relative order.
 
-    __Performance note:__ If @op x y@ changes much more if
-    @x@ moves along @xs@ than if @y@ moves along @ys@, then
-    @applyMerge op xs ys@ will be faster than @applyMerge (flip op) ys xs@.
-    This is an inevitable fact of the asymmetric implementation and may be fixed
-    in later versions. /Example 2/ is a specific example of this phenomenon.
+    __Performance note:__ If @op x y@ changes much more if @x@ moves along @xs@
+    than if @y@ moves along @ys@, then @applyMerge op xs ys@ will be faster than
+    @applyMerge (flip op) ys xs@. This is an inevitable fact of the asymmetric
+    implementation and may be fixed in later versions. /Example 2/ is a specific
+    example of this phenomenon.
 
     /Example 1./ Generating 3-smooth numbers (numbers whose prime factors are
     less than or equal to 3):

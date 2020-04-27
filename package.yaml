@@ -56,9 +56,7 @@ tests:
       - Data.List.Gen
     dependencies:
       - hspec
-      - hspec-expectations
       - QuickCheck
-      - random
       - tsil
     ghc-options:
     - -Wno-type-defaults

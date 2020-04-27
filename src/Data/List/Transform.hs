@@ -43,10 +43,14 @@ import Data.Maybe    (fromMaybe)
     True
 -}
 takeEvery :: Int -> [a] -> [a]
-takeEvery n xs =
-    case drop (n - 1) xs of
-        []       -> []
-        (y : ys) -> y : takeEvery n ys
+takeEvery step xs = compute validated
+  where compute xs = case drop (step - 1) xs of
+                         []     -> []
+                         (y:ys) -> y : compute ys
+        validated
+          | step > 0  = xs
+          | otherwise = error $ "Data.List.Transform.takeEvery: Step parameter "
+                             ++ "must be positive."
 
 {-| Take a list until a predicate is satisfied, and include the element
     satisfying the predicate.
@@ -66,9 +70,9 @@ takeEvery n xs =
     1
 -}
 takeUntil :: (a -> Bool) -> [a] -> [a]
-takeUntil _ []       = []
-takeUntil _ [x]      = [x]
-takeUntil f (x : xs) = x : (if f x then [] else takeUntil f xs)
+takeUntil _ []     = []
+takeUntil _ [x]    = [x]
+takeUntil f (x:xs) = x : (if f x then [] else takeUntil f xs)
 
 {-| Drop a list until a predicate is satisfied, and include the element
     satisfying the predicate.
@@ -132,7 +136,7 @@ groupAdj = groupAdjBy (==)
 groupAdjBy :: (a -> a -> Bool) -> [a] -> [[a]]
 groupAdjBy eq = foldr f []
   where
-    f x yss = (x : zs) : zss
+    f x yss = (x:zs):zss
       where
         (zs, zss) = fromMaybe ([], yss) $ do
             (ys, yss') <- uncons yss
@@ -176,7 +180,7 @@ deleteAdjDups = deleteAdjDupsBy (==)
 -}
 deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
-deleteAdjDupsBy eq xs@(x : _) =
+deleteAdjDupsBy eq xs@(x:_) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
 
 {-| Rotate a list by an offset. Positive offset is left rotation, negative is

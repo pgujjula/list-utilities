@@ -8,7 +8,7 @@
 Transform ordered lists.
 -}
 module Data.List.Ordered.Transform
-  ( -- * Basic mulitset operations
+  ( -- * Basic multiset operations
     -- | Basic operations on lists as multisets (sets with repetitions allowed).
     -- All input and output lists in this section are ordered, and the
     -- precondition that input lists are ordered is __unchecked__.

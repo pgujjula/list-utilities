@@ -1,18 +1,16 @@
 module Data.List.DuplicateSpec (spec) where
 
-import Data.List.Duplicate (group, groupBy, groupAdj, groupAdjBy, deleteDups, deleteDupsBy, deleteAdjDups, deleteAdjDupsBy)
+import Data.List.Duplicate (deleteAdjDups, deleteAdjDupsBy, deleteDups,
+                            deleteDupsBy, group, groupAdj, groupAdjBy, groupBy)
 
-import Data.Function (on)
-import Data.Ord (comparing, Down(Down))
-import Data.List (nub, sort)
-import Test.QuickCheck ((===), choose, listOf, forAll)
-import Test.Hspec (Spec, shouldBe, it, shouldSatisfy, describe)
+import Data.Function       (on)
+import Data.List           (nub, sort)
+import Data.Ord            (Down (Down), comparing)
+import Test.Hspec          (Spec, describe, it, shouldBe)
+import Test.QuickCheck     (choose, forAll, listOf, (===))
 
 infiniteListTruncationLength :: Int
 infiniteListTruncationLength = 100
-
-trunc :: [a] -> [a]
-trunc = take infiniteListTruncationLength
 
 empty :: [Integer]
 empty = []

@@ -1,8 +1,8 @@
 # list-predicate
-_list-predicate_ is a library in Haskell for predicates (True/False queries) on lists.
+_list-predicate_ is a library for predicates (True/False queries) on lists.
 
 ## Features
-_list-predicate_ is a new project, but the following features have been implemented and extensively tested:
+The following features have been implemented and extensively tested:
   * `allEqual`, `allEqualBy`: Whether all the elements of a list are equal
   * `sorted`, `sortedBy`: Whether the elements are in sorted order.
   * `allUnique`, `allUniqueBy`: Whether the elements are all unique.
@@ -17,11 +17,11 @@ package is added to Hackage, documentation will be available there as well.
 Build and install with [Stack](https://www.haskellstack.org):
 
 ```
-git clone https://github.com/pgujjula/list-predicate
+git clone https://github.com/pgujjula/list-utilities/list-predicate
 cd list-predicate
-stack build                           # build the project
+stack build list-predicate            # build the project
 stack haddock list-predicate --open   # build and view documentation
-stack test                            # run the test suite
+stack test list-predicate             # run the test suite
 ```
 
 ## Contact

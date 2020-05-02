@@ -1,0 +1,40 @@
+name:                list-combinatorial
+version:             0.1.0.0
+github:              "pgujjula/list-utilities"
+license:             BSD3
+author:              "Preetham Gujjula"
+maintainer:          "pgujjula+list-utilities@protonmail.com"
+copyright:           "2020 Preetham Gujjula"
+
+synopsis:            Combinatorial functions on lists
+category:            List
+
+extra-source-files:
+- README.md
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description: Please see the README on GitHub at <https://github.com/pgujjula/list-utilities/list-combinatorial/#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - Data.List.Combinatorial
+
+tests:
+  spec:
+    source-dirs: test
+    main: Spec.hs
+    other-modules:
+      - Data.List.Combinatorial
+    dependencies:
+      - hspec
+      - QuickCheck
+      - list-combinatorial
+        #    ghc-options:
+      #    - -Wno-type-defaults
+      #    - -Wno-redundant-constraints

@@ -3,6 +3,8 @@ resolver: lts-15.10
 packages:
 - list-combinatorial
 - list-duplicate
+- list-predicate
+- list-filter
 
 ghc-options:
   "$locals":

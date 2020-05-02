@@ -11,6 +11,7 @@ category:            List
 
 extra-source-files:
 - README.md
+- ChangeLog.md
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -35,6 +36,3 @@ tests:
       - hspec
       - QuickCheck
       - list-combinatorial
-        #    ghc-options:
-      #    - -Wno-type-defaults
-      #    - -Wno-redundant-constraints

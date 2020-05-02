@@ -36,3 +36,6 @@ tests:
       - hspec
       - QuickCheck
       - list-duplicate
+    ghc-options:
+    - -Wno-type-defaults
+    - -Wno-redundant-constraints

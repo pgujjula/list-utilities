@@ -1,8 +1,10 @@
 module Data.List.FilterSpec where
 
+import Control.Monad (forM_)
+import Test.Hspec (Spec, shouldBe, describe, it, shouldThrow, anyErrorCall)
+
 import Data.List.Filter (takeEvery, dropEvery, takeUntil, dropUntil)
 
-import Test.Hspec (Spec, shouldBe, describe, it)
 
 empty :: [Integer]
 empty = []
@@ -19,6 +21,11 @@ spec = do
 
 takeEverySpec :: Spec
 takeEverySpec = do
+    it "non-positive step throws error" $
+        forM_ [0, -1] $ \n -> 
+            forM_ [empty, [1, 2, 3]] $ \xs ->
+                (takeEvery n xs `shouldBe` []) `shouldThrow` anyErrorCall
+
     it "n = 1, empty list" $
         takeEvery 1 empty `shouldBe` empty
     it "n = 1, finite list" $
@@ -35,6 +42,11 @@ takeEverySpec = do
 
 dropEverySpec :: Spec
 dropEverySpec = do
+    it "non-positive step throws error" $
+        forM_ [0, -1] $ \n -> 
+            forM_ [empty, [1, 2, 3]] $ \xs ->
+                (dropEvery n xs `shouldBe` []) `shouldThrow` anyErrorCall
+
     it "n = 1, empty list" $ 
         dropEvery 1 empty `shouldBe` empty      
     it "n = 1, finite list" $ 

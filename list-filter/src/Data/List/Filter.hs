@@ -32,28 +32,27 @@ takeEvery step xs = compute validated
     validated
         | step > 0  = xs
         | otherwise = error $ "Data.List.Transform.takeEvery: Step parameter "
-                             ++ "must be positive."
+                           ++ "must be positive."
 
 {-| @dropEvery n xs@ is a list of every @n@th element of @xs@.
 
     __Precondition:__ @n@ must be positive.
 
-    >>> takeEvery 3 [1..10]
-    [3, 6, 9]
-    >>> takeEvery 1 [1..10] == [1..10]
-    True
+    >>> dropEvery 3 [1..10]
+    [1, 2, 4, 5, 7, 8, 10]
+    >>> dropEvery 1 [1..10]
+    []
 -}
 dropEvery :: Int -> [a] -> [a]
 dropEvery step xs = compute validated
   where
     compute ys = case splitAt (step - 1) ys of
                      (as, [])   -> as
-                     (as, b:bs) -> as ++ compute bs
+                     (as, _:bs) -> as ++ compute bs
     validated
         | step > 0  = xs
         | otherwise = error $ "Data.List.Transform.dropEvery: Step parameter "
                            ++ "must be positive."
-
 
 {-| Take a list until a predicate is satisfied, and include the element
     satisfying the predicate.

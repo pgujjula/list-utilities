@@ -36,3 +36,5 @@ tests:
       - hspec
       - QuickCheck
       - list-filter
+    ghc-options:
+      - -Wno-type-defaults

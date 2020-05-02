@@ -25,16 +25,35 @@ module Data.List.Filter (
 -}
 takeEvery :: Int -> [a] -> [a]
 takeEvery step xs = compute validated
-  where compute ys = case drop (step - 1) ys of
-                         []    -> []
-                         y:ys' -> y : compute ys'
-        validated
-          | step > 0  = xs
-          | otherwise = error $ "Data.List.Transform.takeEvery: Step parameter "
+  where
+    compute ys = case drop (step - 1) ys of
+                     []    -> []
+                     y:ys' -> y : compute ys'
+    validated
+        | step > 0  = xs
+        | otherwise = error $ "Data.List.Transform.takeEvery: Step parameter "
                              ++ "must be positive."
 
+{-| @dropEvery n xs@ is a list of every @n@th element of @xs@.
+
+    __Precondition:__ @n@ must be positive.
+
+    >>> takeEvery 3 [1..10]
+    [3, 6, 9]
+    >>> takeEvery 1 [1..10] == [1..10]
+    True
+-}
 dropEvery :: Int -> [a] -> [a]
-dropEvery = undefined
+dropEvery step xs = compute validated
+  where
+    compute ys = case splitAt (step - 1) ys of
+                     (as, [])   -> as
+                     (as, b:bs) -> as ++ compute bs
+    validated
+        | step > 0  = xs
+        | otherwise = error $ "Data.List.Transform.dropEvery: Step parameter "
+                           ++ "must be positive."
+
 
 {-| Take a list until a predicate is satisfied, and include the element
     satisfying the predicate.

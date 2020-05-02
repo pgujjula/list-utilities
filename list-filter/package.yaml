@@ -9,14 +9,27 @@ copyright:           "2020 Preetham Gujjula"
 synopsis:            Special takes and drops on lists
 category:            List
 
-extra-source-files:
-- README.md
-- ChangeLog.md
-
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
 description: Please see the README on GitHub at <https://github.com/pgujjula/list-utilities/list-filter/#readme>
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Wmissing-export-lists
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wpartial-fields
+- -Wmissing-home-modules
+- -Werror=missing-home-modules
+- -Widentities
+- -Wredundant-constraints
+- -Wmissing-export-lists
+
+extra-source-files:
+- README.md
+- ChangeLog.md
 
 dependencies:
 - base >= 4.7 && < 5

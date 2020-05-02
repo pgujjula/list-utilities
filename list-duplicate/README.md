@@ -1,27 +1,32 @@
-# tsil
-_tsil_ is a list utilities library in Haskell (tsil is "list" backwards).
+# list-duplicate
+_list-duplicate_ is a library for working with duplicates in lists.
 
 ## Features
-_tsil_ is a new project, but the following features have been implemented and extensively tested:
-* `Data.List.Digit`: Convert integers to a list of digits, and vice versa.
-* `Data.List.Transform`: Filter lists in novel ways, group elements, delete duplicates, and rotate lists by an integer offset.
-* `Data.List.Ordered.Transform`: Diff, union, and intersect ordered lists. Also perform complex merges, including **merging infinite lists of infinite lists**.
-* `Data.List.Predicate`: Predicates on lists, such as `palindrome`, `allEqual`, `sorted`, and `allUnique`.
+_list-duplicate_ is a new project, but the following features have been implemented
+and extensively tested:
+  * `group`, `groupBy`: Group duplicate elements
+  * `groupAdj`, `groupAdj`: Group duplicate adjacent elements in a list. Also
+    useful for grouping the elements of a sorted list.
+  * `deleteDups`, `deleteDupsBy`: Delete duplicates from a list.
+  * `deleteAdjDups`, `deleteAdjDupsBy`: Delete adjacent duplicates from a list.
+    Also useful for deleting duplicates from a sorted list.
 
-Full documentation can be built with Haddock (see instructions below). Once this package is added to Hackage, documentation will be available there as well.
+Full documentation can be built with Haddock (see instructions below), and is
+also available on Hackage.
 
 ## Installation
 Build and install with [Stack](https://www.haskellstack.org):
 
 ```
-git clone https://github.com/pgujjula/tsil
-cd tsil
-stack build                 # build the project
-stack haddock tsil --open   # build and view documentation
-stack test                  # run the test suite
+git clone https://github.com/pgujjula/list-utilities
+cd list-utilities/list-duplicate
+stack build list-duplicate           # build the project
+stack haddock list-duplicate --open  # build and view documentation
+stack test                           # run the test suite
 ```
 
-## Bug Reports/Feature Requests
-Feel free to email me at preetham (dot) gujjula (at) protonmail (dot) com!
+## Contact
+If you want to report a bug, request a feature, or suggest improvements, feel
+free to email me at preetham (dot) gujjula (at) protonmail (dot) com!
 
 -- Preetham

@@ -2,3 +2,4 @@
 *~
 tsil.cabal
 stack.yaml.lock
+*.cabal

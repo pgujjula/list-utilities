@@ -1,11 +1,13 @@
-module Data.List.DigitSpec (spec) where
+module Data.List.CombinatorialSpec (spec) where
+
+import Test.Hspec (Spec, describe)
 
 spec :: Spec
 spec = do
     describe "rotate" rotateSpec
     describe "rotations" rotationsSpec
     describe "combinationsOfSize" combinationsOfSizeSpec
-    describe "permutationsOfSize" rotationsOfSizeSpec
+    describe "permutationsOfSize" permutationsOfSizeSpec
     describe "derangements" derangementsSpec
 
 rotateSpec :: Spec

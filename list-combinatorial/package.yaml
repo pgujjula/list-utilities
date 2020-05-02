@@ -30,7 +30,7 @@ tests:
     source-dirs: test
     main: Spec.hs
     other-modules:
-      - Data.List.Combinatorial
+      - Data.List.CombinatorialSpec
     dependencies:
       - hspec
       - QuickCheck

@@ -1,7 +1,8 @@
 resolver: lts-15.10
 
 packages:
-- .
+- list-combinatorial
 
 ghc-options:
-  "$everything": -O2
+  "$locals":
+    -Wall -Wcompat -Wmissing-export-lists -Wincomplete-uni-patterns -Wincomplete-record-updates -Wpartial-fields -Wmissing-home-modules -Werror=missing-home-modules -Widentities -Wredundant-constraints -Wmissing-export-lists

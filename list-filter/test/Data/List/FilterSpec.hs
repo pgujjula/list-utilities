@@ -1,4 +1,4 @@
-module Data.List.FilterSpec where
+module Data.List.FilterSpec (spec) where
 
 import Control.Monad    (forM_)
 import Test.Hspec       (Spec, anyErrorCall, describe, it, shouldBe,

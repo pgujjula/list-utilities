@@ -2,6 +2,7 @@ resolver: lts-15.10
 
 packages:
 - list-combinatorial
+- list-duplicate
 
 ghc-options:
   "$locals":

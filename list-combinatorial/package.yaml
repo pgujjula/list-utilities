@@ -49,3 +49,5 @@ tests:
       - hspec
       - QuickCheck
       - list-combinatorial
+    ghc-options:
+      - -Wno-type-defaults

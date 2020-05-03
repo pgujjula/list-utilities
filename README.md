@@ -15,9 +15,9 @@ Build and install with [Stack](https://www.haskellstack.org):
 ```
 git clone https://github.com/pgujjula/list-utilities
 cd list-utilities
-stack build                           # build the project
-stack haddock list-utilities --open   # build and view documentation
-stack test                            # run the test suite
+stack build           # build the project
+stack haddock --open  # build and view documentation
+stack test            # run the test suite
 ```
 
 ## Bug Reports/Feature Requests

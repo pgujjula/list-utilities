@@ -123,6 +123,13 @@ permutationsOfSize n xs
     This function will not hang on infinite lists, but following the ordering
     rules above means some derangements will never be produced, even though the
     derangements are enumerable if we used a different ordering.
+
+    >>> derangements [1, 2, 3]
+    [[2,3,1],[3,1,2]]
+    >>> derangements [1]
+    []
+    >>> derangements []
+    [[]]
 -}
 derangements :: [a] -> [[a]]
 derangements xs = ds

@@ -6,6 +6,7 @@ _list-utilities_ is a new project, but the following packages have been implemen
 * `list-predicate`: Predicates (True/False) queries on lists.
 * `list-filter`: Supplement the filters available in the standard library.
 * `list-duplicate`: Work with duplicates in lists.
+
 See the individual package READMEs and hackage for more documentation.
 
 ## Installation

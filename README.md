@@ -1,24 +1,22 @@
-# tsil
-_tsil_ is a list utilities library in Haskell (tsil is "list" backwards).
+# list-utilies
+The _list-utilities_ project is a group of utility packages for lists in Haskell.
 
 ## Features
-_tsil_ is a new project, but the following features have been implemented and extensively tested:
-* `Data.List.Digit`: Convert integers to a list of digits, and vice versa.
-* `Data.List.Transform`: Filter lists in novel ways, group elements, delete duplicates, and rotate lists by an integer offset.
-* `Data.List.Ordered.Transform`: Diff, union, and intersect ordered lists. Also perform complex merges, including **merging infinite lists of infinite lists**.
-* `Data.List.Predicate`: Predicates on lists, such as `palindrome`, `allEqual`, `sorted`, and `allUnique`.
-
-Full documentation can be built with Haddock (see instructions below). Once this package is added to Hackage, documentation will be available there as well.
+_list-utilities_ is a new project, but the following packages have been implemented and extensively tested:
+* `list-predicate`: Predicates (True/False) queries on lists.
+* `list-filter`: Supplement the filters available in the standard library.
+* `list-duplicate`: Work with duplicates in lists.
+See the individual package READMEs and hackage for more documentation.
 
 ## Installation
 Build and install with [Stack](https://www.haskellstack.org):
 
 ```
-git clone https://github.com/pgujjula/tsil
-cd tsil
-stack build                 # build the project
-stack haddock tsil --open   # build and view documentation
-stack test                  # run the test suite
+git clone https://github.com/pgujjula/list-utilities
+cd list-utilities
+stack build                           # build the project
+stack haddock list-utilities --open   # build and view documentation
+stack test                            # run the test suite
 ```
 
 ## Bug Reports/Feature Requests

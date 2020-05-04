@@ -82,11 +82,13 @@ dropUntilSpec :: Spec
 dropUntilSpec = do
     it "empty list, undefined function" $
         dropUntil undefined empty `shouldBe` empty
+    it "singleton list , undefined function" $
+        dropUntil undefined singletonUndef `shouldBe` empty
     it "finite list" $
-        dropUntil (== 5) [1..10] `shouldBe` [5..10]
+        dropUntil (== 5) [1..10] `shouldBe` [6..10]
     it "finite list, always True" $
-        dropUntil (const True) [1..10] `shouldBe` [1..10]
+        dropUntil (const True) [1..10] `shouldBe` [2..10]
     it "finite list, always False" $
         dropUntil (const False) [1..10] `shouldBe` []
     it "infinite list" $
-        take 6 (dropUntil (== 5) [1..]) `shouldBe` [5..10]
+        take 5 (dropUntil (== 5) [1..]) `shouldBe` [6..10]

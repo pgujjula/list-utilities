@@ -76,16 +76,24 @@ takeUntil _ []     = []
 takeUntil _ [x]    = [x]
 takeUntil f (x:xs) = x : (if f x then [] else takeUntil f xs)
 
-{-| Drop a list until a predicate is satisfied, and include the element
+{-| Drop a list until a predicate is satisfied, and don't include the element
     satisfying the predicate.
 
     >>> dropUntil (== 5) [1..10]
-    [5, 6, 7, 8, 9, 10]
+    [6, 7, 8, 9, 10]
     >>> dropUntil (< 0) [1, 2, 3]
     []
     >>> dropUntil undefined []
     []
+
+    Note that @dropUntil@ on a nonempty list must always drop the first
+    element, and the implementation is lazy enough to take advantage of this
+    fact.
+
+    >>> dropUntil undefined [undefined]
+    []
 -}
 dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil _ []     = []
-dropUntil f (x:xs) = if f x then x:xs else dropUntil f xs
+dropUntil _ [_]    = []
+dropUntil f (x:xs) = if f x then xs else dropUntil f xs

@@ -2,4 +2,6 @@
 *~
 tsil.cabal
 stack.yaml.lock
-*.cabal
+list-duplicate.cabal
+list-filter.cabal
+list-predicate.cabal

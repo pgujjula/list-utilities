@@ -1,7 +1,8 @@
 module Data.List.DuplicateSpec (spec) where
 
 import Data.List.Duplicate (deleteAdjDups, deleteAdjDupsBy, deleteDups,
-                            deleteDupsBy, group, groupAdj, groupAdjBy, groupBy)
+                            deleteDupsBy, group, groupAdj, groupAdjBy, groupBy,
+                            mode, modeBy)
 
 import Data.Function       (on)
 import Data.List           (nub, sort)
@@ -29,6 +30,9 @@ spec = do
     describe "deleteDupsBy" deleteDupsBySpec
     describe "deleteAdjDups" deleteAdjDupsSpec
     describe "deleteAdjDupsBy" deleteAdjDupsBySpec
+
+    describe "mode" modeSpec
+    describe "modeBy" modeBySpec
 
 groupSpec :: Spec
 groupSpec = do
@@ -169,4 +173,21 @@ deleteAdjDupsBySpec = do
         deleteAdjDupsBy eq [("a", 3), ("b", 4), ("b", 2), ("c", 4), ("a", 2)]
             `shouldBe` [("a", 3), ("b", 4), ("c", 4), ("a", 2)]
 
+modeSpec :: Spec
+modeSpec = do
+  it "empty list" $
+      mode ([] :: [Int]) `shouldBe` Nothing
+  it "singleton list" $
+      mode ([1] :: [Int]) `shouldBe` Just 1
+  it "finite list" $
+      mode ([1,1,2,1,2,0] :: [Int]) `shouldBe` Just 1
 
+modeBySpec :: Spec
+modeBySpec = do
+  it "empty list" $
+      modeBy undefined ([] :: [Int]) `shouldBe` Nothing
+  it "singleton list" $
+      modeBy undefined ([1] :: [Int]) `shouldBe` Just 1
+  it "finite list" $
+      fmap even (modeBy (comparing even) ([1,1,2,1,2,0] :: [Int]))
+          `shouldBe` Just True

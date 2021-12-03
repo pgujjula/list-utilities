@@ -28,4 +28,3 @@ If you want to report a bug, request a feature, or suggest improvements, feel
 free to email me at preetham (dot) gujjula (at) protonmail (dot) com!
 
 -- Preetham
-

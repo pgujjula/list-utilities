@@ -19,11 +19,17 @@ module Data.List.Duplicate (
     , deleteDupsBy
     , deleteAdjDups
     , deleteAdjDupsBy
+
+    -- * Finding the mode
+    , mode
+    , modeBy
     ) where
 
 import Control.Monad (guard)
-import Data.List     (sort, sortBy, uncons)
+import Data.List     (maximumBy, sort, sortBy, uncons)
 import Data.Maybe    (fromMaybe)
+import Data.Function ((&))
+import Data.Ord      (comparing)
 
 {-| /O(n log(n))./ Group the equal elements of the list together, in sorted
     order.
@@ -119,3 +125,14 @@ deleteAdjDupsBy :: (a -> a -> Bool) -> [a] -> [a]
 deleteAdjDupsBy _ [] = []
 deleteAdjDupsBy eq xs@(x:_) =
     x : map fst (filter (not . uncurry eq) $ zip (tail xs) xs)
+
+mode :: Ord a => [a] -> Maybe a
+mode = modeBy compare
+
+modeBy :: (a -> a -> Ordering) -> [a] -> Maybe a
+modeBy _ [] = Nothing
+modeBy f xs =
+  groupBy f xs
+  & maximumBy (comparing length)
+  & head
+  & Just

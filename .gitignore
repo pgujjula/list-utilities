@@ -1,7 +1,3 @@
 .stack-work/
 *~
-tsil.cabal
 stack.yaml.lock
-list-duplicate.cabal
-list-filter.cabal
-list-predicate.cabal

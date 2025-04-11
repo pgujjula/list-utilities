@@ -4,7 +4,7 @@ version:             0.1.0.0
 github:              "pgujjula/list-utilities"
 license:             BSD3
 author:              "Preetham Gujjula"
-maintainer:          "pgujjula+list-utilities@protonmail.com"
+maintainer:          "Preetham Gujjula <libraries@mail.preetham.io>"
 copyright:           "2020 Preetham Gujjula"
 
 synopsis:            Combinatorial functions on lists

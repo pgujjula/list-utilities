@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5dcb7fddb1f9898201deb4f8d458cadcef6d658298b32329fba90bf706a37449
+-- hash: 8314a93954dee4c180d4121efb8464807635a3ac4ef7d231969577b5474d7f64
 
 name:           list-combinatorial
 version:        0.1.0.0
@@ -14,7 +14,7 @@ category:       List
 homepage:       https://github.com/pgujjula/list-utilities#readme
 bug-reports:    https://github.com/pgujjula/list-utilities/issues
 author:         Preetham Gujjula
-maintainer:     pgujjula+list-utilities@protonmail.com
+maintainer:     Preetham Gujjula <libraries@mail.preetham.io>
 copyright:      2020 Preetham Gujjula
 license:        BSD3
 license-file:   LICENSE

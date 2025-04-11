@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8b2c6c9e884ba46e12dcdb6f113e60354461e5c6dc03a16963dd23c2c327a810
+-- hash: d1c32c22e30a1bc44da678d7736c84cabdff1a0cb43d1b77d27c39c5e916cea0
 
 name:           list-predicate
 version:        0.1.0.1
@@ -15,7 +15,7 @@ homepage:       https://github.com/pgujjula/list-utilities#readme
 bug-reports:    https://github.com/pgujjula/list-utilities/issues
 author:         Preetham Gujjula
 maintainer:     Preetham Gujjula <libraries@mail.preetham.io>
-copyright:      2020 Preetham Gujjula
+copyright:      Preetham Gujjula
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

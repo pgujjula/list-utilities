@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a56fa57079cbc91d41e44a88094c2b2b51eb528309591223ca6cb511016a4c60
+-- hash: fc60530fc41935f854279367975f09cc39f513d93c8d27d689637d3b654d11de
 
 name:           list-filter
 version:        0.1.1.0
@@ -15,7 +15,7 @@ homepage:       https://github.com/pgujjula/list-utilities#readme
 bug-reports:    https://github.com/pgujjula/list-utilities/issues
 author:         Preetham Gujjula
 maintainer:     Preetham Gujjula <libraries@mail.preetham.io>
-copyright:      2020 Preetham Gujjula
+copyright:      Preetham Gujjula
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

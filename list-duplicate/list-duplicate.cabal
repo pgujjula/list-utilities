@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e53e0621828f3a9e7f4dbafbe15523c1d1fe83022b30aab028a3f902bb20a728
+-- hash: 4523c272e3a573635d84256991121dfd959f80320fd1f1218cb13fa33d63d128
 
 name:           list-duplicate
 version:        0.1.0.0
@@ -15,7 +15,7 @@ homepage:       https://github.com/pgujjula/list-duplicate#readme
 bug-reports:    https://github.com/pgujjula/list-duplicate/issues
 author:         Preetham Gujjula
 maintainer:     Preetham Gujjula <libraries@mail.preetham.io>
-copyright:      2020 Preetham Gujjula
+copyright:      Preetham Gujjula
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

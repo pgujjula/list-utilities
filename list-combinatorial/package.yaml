@@ -5,7 +5,7 @@ github:              "pgujjula/list-utilities"
 license:             BSD3
 author:              "Preetham Gujjula"
 maintainer:          "Preetham Gujjula <libraries@mail.preetham.io>"
-copyright:           "2020 Preetham Gujjula"
+copyright:           "Preetham Gujjula"
 
 synopsis:            Combinatorial functions on lists
 category:            List
